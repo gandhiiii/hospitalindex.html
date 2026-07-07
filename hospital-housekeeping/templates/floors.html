@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Floors</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Floors</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-header">
+        <h2>&#127968; Hospital Floors</h2>
+        <div class="flex gap-8">
+          {% if role == 'admin' %}
+          <button class="btn btn-primary btn-sm" onclick="showFloorModal()">+ Add Floor</button>
+          {% endif %}
+          <button class="btn btn-outline btn-sm" onclick="loadFloors()">&#8635;</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Code</th><th>Description</th><th>Areas</th><th>Employees</th>{% if role == 'admin' %}<th>Actions</th>{% endif %}</tr></thead><tbody id="floorTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floor Modal -->
+<div class="modal-overlay" id="floorModal">
+  <div class="modal" style="max-width:450px">
+    <div class="modal-header"><h3 id="floorModalTitle">Add Floor</h3><button class="modal-close" onclick="closeModal('floorModal')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editFloorId">
+      <div class="form-group"><label>Name *</label><input class="form-control" id="floorName"></div>
+      <div class="form-group"><label>Code *</label><input class="form-control" id="floorCode" placeholder="e.g. GF, FF, SF"></div>
+      <div class="form-group"><label>Description</label><textarea class="form-control" id="floorDesc" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('floorModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFloor()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+let floors = [];
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadFloors() {
+  const r = await fetch('/api/floors');
+  floors = await r.json();
+  const tbody = document.getElementById('floorTable');
+  if (!floors.length) { tbody.innerHTML = '<tr><td colspan="{% if role == '"+"'admin'"+' %}6{% else %}5{% endif %}" class="empty-state"><p>No floors defined</p></td></tr>'; return; }
+  tbody.innerHTML = floors.map(f => '<tr><td>'+f.name+'</td><td>'+f.code+'</td><td>'+(f.description||'-')+'</td><td>'+f.area_count+'</td><td>'+f.employee_count+'</td>' +
+    (currentRole === 'admin' ? '<td><button class="btn btn-info btn-xs" onclick="editFloor('+f.id+')">Edit</button> <button class="btn btn-danger btn-xs" onclick="deleteFloor('+f.id+')">Del</button></td>' : '') +
+  '</tr>').join('');
+}
+
+function showFloorModal() {
+  document.getElementById('floorModalTitle').textContent = 'Add Floor';
+  document.getElementById('editFloorId').value = '';
+  document.getElementById('floorName').value = '';
+  document.getElementById('floorCode').value = '';
+  document.getElementById('floorDesc').value = '';
+  document.getElementById('floorModal').classList.add('show');
+}
+
+function editFloor(id) {
+  const f = floors.find(x => x.id === id);
+  if (!f) return;
+  document.getElementById('floorModalTitle').textContent = 'Edit Floor';
+  document.getElementById('editFloorId').value = f.id;
+  document.getElementById('floorName').value = f.name;
+  document.getElementById('floorCode').value = f.code;
+  document.getElementById('floorDesc').value = f.description||'';
+  document.getElementById('floorModal').classList.add('show');
+}
+
+async function saveFloor() {
+  const id = document.getElementById('editFloorId').value;
+  const data = {
+    name: document.getElementById('floorName').value,
+    code: document.getElementById('floorCode').value,
+    description: document.getElementById('floorDesc').value
+  };
+  if (!data.name || !data.code) { alert('Name and Code required'); return; }
+  const url = id ? '/api/floors/'+id : '/api/floors/create';
+  const method = id ? 'PUT' : 'POST';
+  const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}).then(r=>r.json());
+  if (r.error) { alert(r.error); return; }
+  closeModal('floorModal');
+  loadFloors();
+}
+
+async function deleteFloor(id) {
+  if (!confirm('Delete this floor? This may affect related data.')) return;
+  await fetch('/api/floors/'+id, {method:'DELETE'});
+  loadFloors();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+loadFloors();
+</script>
+</body>
+</html>

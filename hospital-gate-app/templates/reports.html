@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Hospital Gate</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo">+H</div><span class="logo-text">Gate Entry</span></div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item"><span class="nav-icon">&#9679;</span> Dashboard</a>
+            <a href="/gates" class="nav-item"><span class="nav-icon">&#9776;</span> Gate Control</a>
+            <a href="/entry" class="nav-item"><span class="nav-icon">&#9654;</span> Entry/Exit</a>
+            <a href="/visitors" class="nav-item"><span class="nav-icon">&#9787;</span> Visitors</a>
+            <a href="/reports" class="nav-item active"><span class="nav-icon">&#128202;</span> Reports</a>
+            <a href="/alerts" class="nav-item"><span class="nav-icon">&#9888;</span> Alerts <span class="badge" id="alertBadge">0</span></a>
+            <hr class="nav-divider">
+            <a href="/logout" class="nav-item"><span class="nav-icon">&#8617;</span> Logout</a>
+        </nav>
+        <div class="sidebar-footer"><div id="userInfo">Loading...</div></div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Reports & Analytics</h1>
+            <div class="topbar-right">
+                <select id="daysSelect" class="form-input" style="width:140px" onchange="loadReports()">
+                    <option value="1">Last 24 Hours</option>
+                    <option value="7" selected>Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                </select>
+                <a href="/api/reports/export?days=7" class="btn btn-primary">&#128229; Export CSV</a>
+            </div>
+        </header>
+
+        <div class="stats-grid" id="reportStats"></div>
+
+        <div class="dashboard-grid">
+            <div class="card chart-card">
+                <div class="card-header"><h3>Traffic by Hour</h3></div>
+                <div class="card-body"><canvas id="hourlyReportChart" height="200"></canvas></div>
+            </div>
+            <div class="card chart-card">
+                <div class="card-header"><h3>By Category</h3></div>
+                <div class="card-body"><canvas id="categoryChart" height="200"></canvas></div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid" style="margin-top:16px">
+            <div class="card chart-card">
+                <div class="card-header"><h3>Direction (Entry vs Exit)</h3></div>
+                <div class="card-body"><canvas id="directionChart" height="200"></canvas></div>
+            </div>
+            <div class="card chart-card">
+                <div class="card-header"><h3>By Gate</h3></div>
+                <div class="card-body"><canvas id="gateChart" height="200"></canvas></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        let chartHourly = null, chartCategory = null, chartDirection = null, chartGate = null;
+
+        async function loadReports() {
+            const days = document.getElementById('daysSelect').value;
+            const res = await fetch(`/api/reports/summary?days=${days}`);
+            const data = await res.json();
+
+            document.getElementById('reportStats').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${data.total}</div><div class="stat-label">Total Traffic</div></div>
+                <div class="stat-card"><div class="stat-value">${data.by_direction.entry || 0}</div><div class="stat-label">Entries</div></div>
+                <div class="stat-card"><div class="stat-value">${data.by_direction.exit || 0}</div><div class="stat-label">Exits</div></div>
+                <div class="stat-card emergency-stat"><div class="stat-value">${data.emergency_count}</div><div class="stat-label">Emergency</div></div>
+                <div class="stat-card"><div class="stat-value">${data.unauthorized}</div><div class="stat-label">Unauthorized</div></div>
+                <div class="stat-card"><div class="stat-value">${data.pre_registered}</div><div class="stat-label">Pre-Registered</div></div>
+            `;
+
+            makeChart('hourlyReportChart', 'bar', data.by_hour.map(h => h.hour), data.by_hour.map(h => h.count), 'rgba(0, 114, 255, 0.6)', chartHourly, c => chartHourly = c);
+            makeChart('categoryChart', 'doughnut', Object.keys(data.by_category), Object.values(data.by_category), null, chartCategory, c => chartCategory = c);
+            makeChart('directionChart', 'doughnut', Object.keys(data.by_direction), Object.values(data.by_direction), null, chartDirection, c => chartDirection = c);
+            makeChart('gateChart', 'bar', Object.keys(data.by_gate), Object.values(data.by_gate), 'rgba(0, 200, 83, 0.6)', chartGate, c => chartGate = c);
+        }
+
+        function makeChart(canvasId, type, labels, values, bgColor, oldChart, setter) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (oldChart) oldChart.destroy();
+
+            const colors = ['#0072ff', '#00c853', '#ff6d00', '#d50000', '#aa00ff', '#00bcd4', '#ffab00', '#e040fb'];
+            const bgColors = bgColor ? labels.map(() => bgColor) : labels.map((_, i) => colors[i % colors.length]);
+
+            const cfg = {
+                type,
+                data: { labels, datasets: [{ data: values, backgroundColor: bgColors, borderWidth: 1, borderRadius: 4 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: type === 'doughnut' ? 'bottom' : 'none' } },
+                    scales: type === 'bar' ? { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } : {}
+                }
+            };
+            const chart = new Chart(ctx, cfg);
+            setter(chart);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadReports);
+    </script>
+</body>
+</html>

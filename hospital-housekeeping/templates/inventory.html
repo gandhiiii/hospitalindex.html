@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Report</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Inventory Report</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+
+    <div class="stats-grid" id="invStats"></div>
+
+    <div class="card">
+      <div class="card-header"><h2>&#128202; Inventory by Category</h2></div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Category</th><th>Items</th><th>Total Qty</th><th>Total Value (&#8377;)</th></tr></thead><tbody id="catReportTable"></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>&#9888; Low Stock Items</h2></div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Material</th><th>Category</th><th>Current Stock</th><th>Min Stock</th><th>Unit</th><th>Supplier</th></tr></thead><tbody id="lowStockTable"></tbody></table></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadReport() {
+  const r = await fetch('/api/reports/inventory');
+  const d = await r.json();
+
+  document.getElementById('invStats').innerHTML = [
+    {label:'Total Items', value:d.total_items, icon:'&#9746;', cls:'blue'},
+    {label:'Total Quantity', value:Math.round(d.total_qty), icon:'&#9783;', cls:'green'},
+    {label:'Total Value', icon:'&#8377;', cls:'purple', valueHtml:'&#8377;'+Math.round(d.total_value).toLocaleString()},
+    {label:'Low Stock Items', value:d.low_stock, icon:'&#9888;', cls:'red'},
+  ].map(s => '<div class="stat-card '+s.cls+'"><div class="stat-icon">'+s.icon+'</div><div class="stat-info">'+(s.valueHtml ? '<h3>'+s.valueHtml+'</h3>' : '<h3>'+s.value+'</h3>')+'<p>'+s.label+'</p></div></div>').join('');
+
+  const catBody = document.getElementById('catReportTable');
+  const cats = d.by_category || {};
+  const catKeys = Object.keys(cats);
+  if (!catKeys.length) {
+    catBody.innerHTML = '<tr><td colspan="4" class="empty-state"><p>No categories</p></td></tr>';
+  } else {
+    catBody.innerHTML = catKeys.map(k => '<tr><td>'+k+'</td><td>'+cats[k].count+'</td><td>'+Math.round(cats[k].total_qty)+'</td><td>&#8377;'+Math.round(cats[k].total_value).toLocaleString()+'</td></tr>').join('');
+  }
+
+  const ls = await fetch('/api/materials/low-stock').then(r=>r.json());
+  const lsBody = document.getElementById('lowStockTable');
+  if (!ls.length) {
+    lsBody.innerHTML = '<tr><td colspan="6" class="empty-state"><p>All items are adequately stocked</p></td></tr>';
+  } else {
+    lsBody.innerHTML = ls.map(m => '<tr class="low-stock"><td>'+m.name+'</td><td>'+m.category+'</td><td>'+m.current_stock+'</td><td>'+m.min_stock+'</td><td>'+m.unit+'</td><td>'+(m.supplier||'-')+'</td></tr>').join('');
+  }
+}
+
+loadReport();
+</script>
+</body>
+</html>

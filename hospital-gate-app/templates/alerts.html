@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts - Hospital Gate</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo">+H</div><span class="logo-text">Gate Entry</span></div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item"><span class="nav-icon">&#9679;</span> Dashboard</a>
+            <a href="/gates" class="nav-item"><span class="nav-icon">&#9776;</span> Gate Control</a>
+            <a href="/entry" class="nav-item"><span class="nav-icon">&#9654;</span> Entry/Exit</a>
+            <a href="/visitors" class="nav-item"><span class="nav-icon">&#9787;</span> Visitors</a>
+            <a href="/reports" class="nav-item"><span class="nav-icon">&#128202;</span> Reports</a>
+            <a href="/alerts" class="nav-item active"><span class="nav-icon">&#9888;</span> Alerts <span class="badge" id="alertBadge">0</span></a>
+            <hr class="nav-divider">
+            <a href="/logout" class="nav-item"><span class="nav-icon">&#8617;</span> Logout</a>
+        </nav>
+        <div class="sidebar-footer"><div id="userInfo">Loading...</div></div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Alerts & Notifications</h1>
+            <div class="topbar-right">
+                <button class="btn btn-secondary" onclick="markAllRead()">&#10003; Mark All Read</button>
+                <button class="refresh-btn" onclick="loadAlerts()">&#8635; Refresh</button>
+            </div>
+        </header>
+
+        <div class="card">
+            <div class="card-header"><h3>Alert Feed</h3></div>
+            <div class="card-body" id="alertsContainer"><div class="loading-spinner"></div></div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        async function loadAlerts() {
+            try {
+                const res = await fetch('/api/alerts');
+                const alerts = await res.json();
+                const html = alerts.map(a => {
+                    const time = new Date(a.created_at).toLocaleString();
+                    const sevClass = a.severity === 'critical' ? 'alert-critical' : (a.severity === 'warning' ? 'alert-warning' : 'alert-info');
+                    const icons = { 'emergency': '&#9888;', 'gate': '&#9776;', 'entry': '&#9654;', 'visitor': '&#9787;', 'sms': '&#128231;', 'email': '&#9993;', 'auto_close': '&#9200;', 'security': '&#128274;' };
+                    const icon = icons[a.type] || '&#9888;';
+                    return `<div class="alert-item ${sevClass} ${a.is_read ? 'alert-read' : ''}" onclick="markRead(${a.id})">
+                        <span class="alert-icon">${icon}</span>
+                        <div class="alert-body">
+                            <div class="alert-message">${a.message}</div>
+                            <div class="alert-meta">${a.type} &middot; ${time}</div>
+                        </div>
+                        ${!a.is_read ? '<span class="alert-dot"></span>' : ''}
+                    </div>`;
+                }).join('');
+                document.getElementById('alertsContainer').innerHTML = html || '<div class="empty-state">No alerts</div>';
+            } catch (e) { console.error(e); }
+        }
+
+        async function markRead(id) {
+            await fetch(`/api/alerts/${id}/read`, { method: 'POST' });
+            loadAlerts();
+            loadAlertCount();
+        }
+
+        async function markAllRead() {
+            await fetch('/api/alerts/read-all', { method: 'POST' });
+            loadAlerts();
+            loadAlertCount();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAlerts();
+            setInterval(loadAlerts, 15000);
+        });
+    </script>
+</body>
+</html>

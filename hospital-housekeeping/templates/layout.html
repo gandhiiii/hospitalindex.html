@@ -1,0 +1,48 @@
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>Housekeeping Manager</h1>
+    <p>Floor Inventory &amp; Checklist</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a class="nav-item active" data-page="dashboard" href="/"><span class="icon">&#9632;</span> Dashboard</a>
+
+    <div class="nav-section">Housekeeping</div>
+    <a class="nav-item" data-page="housekeeping" href="/housekeeping"><span class="icon">&#9745;</span> Housekeeping Checklist</a>
+    <a class="nav-item" data-page="tasks" href="/tasks"><span class="icon">&#9881;</span> Manage Tasks</a>
+    <a class="nav-item" data-page="areas" href="/areas"><span class="icon">&#9730;</span> Areas / Zones</a>
+    <a class="nav-item" data-page="floors" href="/floors"><span class="icon">&#127968;</span> Floors</a>
+
+    <div class="nav-section">Inventory</div>
+    <a class="nav-item" data-page="inventory" href="/floor-inventory"><span class="icon">&#9783;</span> Floor Inventory</a>
+    <a class="nav-item" data-page="materials" href="/materials"><span class="icon">&#9746;</span> Materials Master</a>
+    <a class="nav-item" data-page="transfers" href="/transfers"><span class="icon">&#8646;</span> Transfers</a>
+
+    <div class="nav-section">Requests</div>
+    <a class="nav-item" data-page="requests" href="/requests"><span class="icon">&#128221;</span> Material Requests</a>
+
+    <div class="nav-section">Administration</div>
+    {% if role in ('admin','storekeeper') %}
+    <a class="nav-item" data-page="employees" href="/employees"><span class="icon">&#128101;</span> Employees</a>
+    {% endif %}
+    {% if role == 'admin' %}
+    <a class="nav-item" data-page="inventory-page" href="/inventory"><span class="icon">&#128202;</span> Inventory Report</a>
+    {% endif %}
+
+    <div class="nav-divider"></div>
+    <div class="nav-item logout" onclick="logout()"><span class="icon">&#8592;</span> Logout</div>
+  </nav>
+  <div class="sidebar-footer">Hospital Housekeeping v1.0</div>
+</div>
+<script>
+function logout() { window.location.href = '/logout'; }
+document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+  const page = el.getAttribute('data-page');
+  if (page && window.location.pathname.indexOf(page) > -1 || (page === 'dashboard' && window.location.pathname === '/')) {
+    el.classList.add('active');
+  }
+});
+document.getElementById('hamburger')?.addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+</script>

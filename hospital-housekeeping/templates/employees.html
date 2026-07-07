@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Management</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Employees</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-header">
+        <h2>&#128101; Employee Management</h2>
+        <div class="flex gap-8">
+          <select class="form-control form-control-sm" id="roleFilter" onchange="loadEmployees()" style="width:auto;min-width:120px">
+            <option value="">All Roles</option><option value="employee">Employee</option><option value="storekeeper">Storekeeper</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="showEmployeeModal()">+ Add Employee</button>
+          <button class="btn btn-outline btn-sm" onclick="loadEmployees()">&#8635;</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Phone</th><th>Email</th><th>Assigned Floor</th><th>Status</th><th>Actions</th></tr></thead><tbody id="empTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Employee Modal -->
+<div class="modal-overlay" id="employeeModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header"><h3 id="empModalTitle">Add Employee</h3><button class="modal-close" onclick="closeModal('employeeModal')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editEmpId">
+      <div class="form-row">
+        <div class="form-group"><label>Username *</label><input class="form-control" id="empUsername"></div>
+        <div class="form-group"><label>Full Name *</label><input class="form-control" id="empName"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Password *</label><input type="password" class="form-control" id="empPassword" placeholder="Leave blank to keep"></div>
+        <div class="form-group"><label>Role *</label><select class="form-control" id="empRole"><option value="employee">Employee</option><option value="storekeeper">Storekeeper</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone</label><input class="form-control" id="empPhone"></div>
+        <div class="form-group"><label>Email</label><input class="form-control" id="empEmail"></div>
+      </div>
+      <div class="form-group"><label>Assigned Floor</label><select class="form-control" id="empFloor"><option value="">Not assigned</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('employeeModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+let employees = [];
+let floors = [];
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadFloors() {
+  const r = await fetch('/api/floors');
+  floors = await r.json();
+  document.getElementById('empFloor').innerHTML = '<option value="">Not assigned</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+}
+
+async function loadEmployees() {
+  const role = document.getElementById('roleFilter').value;
+  const r = await fetch('/api/employees' + (role ? '?role='+role : ''));
+  employees = await r.json();
+  const tbody = document.getElementById('empTable');
+  if (!employees.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>No employees found</p></td></tr>';
+    return;
+  }
+  tbody.innerHTML = employees.map(e =>
+    '<tr><td>'+e.username+'</td><td>'+e.full_name+'</td><td><span class="badge badge-'+e.role+'">'+e.role+'</span></td><td>'+e.phone+'</td><td>'+e.email+'</td><td>'+ (e.assigned_floor_name||'-') +'</td><td><span class="badge badge-'+(e.is_active?'completed':'incomplete')+'">'+(e.is_active?'Active':'Inactive')+'</span></td><td>' +
+      '<button class="btn btn-info btn-xs" onclick="editEmployee('+e.id+')">Edit</button> ' +
+      (e.is_active ? '<button class="btn btn-danger btn-xs" onclick="deactivateEmployee('+e.id+')">Deactivate</button>' : '<button class="btn btn-success btn-xs" onclick="activateEmployee('+e.id+')">Activate</button>') +
+    '</td></tr>'
+  ).join('');
+}
+
+function showEmployeeModal() {
+  document.getElementById('empModalTitle').textContent = 'Add Employee';
+  document.getElementById('editEmpId').value = '';
+  ['empUsername','empName','empPassword','empPhone','empEmail'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('empRole').value = 'employee';
+  document.getElementById('empFloor').value = '';
+  if (!floors.length) loadFloors();
+  document.getElementById('employeeModal').classList.add('show');
+}
+
+function editEmployee(id) {
+  const e = employees.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('empModalTitle').textContent = 'Edit Employee';
+  document.getElementById('editEmpId').value = e.id;
+  document.getElementById('empUsername').value = e.username;
+  document.getElementById('empName').value = e.full_name;
+  document.getElementById('empPassword').value = '';
+  document.getElementById('empRole').value = e.role;
+  document.getElementById('empPhone').value = e.phone;
+  document.getElementById('empEmail').value = e.email;
+  if (!floors.length) loadFloors();
+  setTimeout(() => { document.getElementById('empFloor').value = e.assigned_floor_id || ''; }, 300);
+  document.getElementById('employeeModal').classList.add('show');
+}
+
+async function saveEmployee() {
+  const id = document.getElementById('editEmpId').value;
+  const data = {
+    username: document.getElementById('empUsername').value,
+    full_name: document.getElementById('empName').value,
+    role: document.getElementById('empRole').value,
+    phone: document.getElementById('empPhone').value,
+    email: document.getElementById('empEmail').value,
+    assigned_floor_id: document.getElementById('empFloor').value ? parseInt(document.getElementById('empFloor').value) : null,
+    password: document.getElementById('empPassword').value
+  };
+  if (!data.username || !data.full_name) { alert('Username and Full Name required'); return; }
+  if (!id && !data.password) { alert('Password required for new users'); return; }
+
+  const url = id ? '/api/employees/'+id : '/api/employees/create';
+  const method = id ? 'PUT' : 'POST';
+  const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}).then(r=>r.json());
+  if (r.error) { alert(r.error); return; }
+  closeModal('employeeModal');
+  loadEmployees();
+}
+
+async function deactivateEmployee(id) {
+  if (!confirm('Deactivate this employee?')) return;
+  await fetch('/api/employees/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({is_active: false})});
+  loadEmployees();
+}
+
+async function activateEmployee(id) {
+  await fetch('/api/employees/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({is_active: true})});
+  loadEmployees();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+loadEmployees();
+loadFloors();
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Control - Hospital Gate</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo">+H</div><span class="logo-text">Gate Entry</span></div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item"><span class="nav-icon">&#9679;</span> Dashboard</a>
+            <a href="/gates" class="nav-item active"><span class="nav-icon">&#9776;</span> Gate Control</a>
+            <a href="/entry" class="nav-item"><span class="nav-icon">&#9654;</span> Entry/Exit</a>
+            <a href="/visitors" class="nav-item"><span class="nav-icon">&#9787;</span> Visitors</a>
+            <a href="/reports" class="nav-item"><span class="nav-icon">&#128202;</span> Reports</a>
+            <a href="/alerts" class="nav-item"><span class="nav-icon">&#9888;</span> Alerts <span class="badge" id="alertBadge">0</span></a>
+            <hr class="nav-divider">
+            <a href="/logout" class="nav-item"><span class="nav-icon">&#8617;</span> Logout</a>
+        </nav>
+        <div class="sidebar-footer"><div id="userInfo">Loading...</div></div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Gate Control Panel</h1>
+            <div class="topbar-right">
+                <button class="refresh-btn" onclick="loadGates()">&#8635; Refresh</button>
+            </div>
+        </header>
+
+        <div class="gate-actions-bar">
+            <button class="btn btn-danger" onclick="emergencyOpenAll()">&#9888; Emergency Open All</button>
+            <button class="btn btn-secondary" onclick="resetAllGates()">&#8634; Reset All Gates</button>
+        </div>
+
+        <div id="gatesContainer" class="gates-grid"><div class="loading-spinner"></div></div>
+
+        <div class="card" style="margin-top:24px">
+            <div class="card-header"><h3>Gate Activity Log</h3></div>
+            <div class="card-body" id="gateLog"><div class="loading-spinner"></div></div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        async function loadGates() {
+            try {
+                const res = await fetch('/api/gates');
+                const gates = await res.json();
+                const html = gates.map(g => {
+                    const isOpen = g.status === 'open';
+                    const isEmergency = g.mode === 'emergency';
+                    return `<div class="gate-card ${isOpen ? 'gate-card-open' : 'gate-card-closed'} ${isEmergency ? 'gate-card-emergency' : ''}">
+                        <div class="gate-visual">
+                            <div class="gate-icon ${isOpen ? 'gate-icon-open' : 'gate-icon-closed'}">
+                                ${isOpen ? '&#9776;' : '&#9776;'}
+                            </div>
+                            <div class="gate-bar ${isOpen ? 'gate-bar-open' : 'gate-bar-closed'}"></div>
+                        </div>
+                        <div class="gate-details">
+                            <h3>${g.name}</h3>
+                            <p class="gate-loc">${g.location || ''}</p>
+                            <div class="gate-status-row">
+                                <span class="status-badge ${isOpen ? 'status-open' : 'status-closed'}">${g.status.toUpperCase()}</span>
+                                <span class="mode-badge mode-${g.mode}">${g.mode.toUpperCase()}</span>
+                            </div>
+                            <p class="gate-time">Last: ${new Date(g.last_activity).toLocaleTimeString()}</p>
+                            <div class="gate-controls">
+                                <button class="btn btn-sm ${isOpen ? 'btn-warning' : 'btn-success'}" onclick="toggleGate(${g.id}, '${isOpen ? 'close' : 'open'}')">
+                                    ${isOpen ? '&#9664; Close' : '&#9654; Open'}
+                                </button>
+                                <select class="mode-select" onchange="setGateMode(${g.id}, this.value)">
+                                    <option value="auto" ${g.mode === 'auto' ? 'selected' : ''}>Auto</option>
+                                    <option value="manual" ${g.mode === 'manual' ? 'selected' : ''}>Manual</option>
+                                    <option value="emergency" ${g.mode === 'emergency' ? 'selected' : ''}>Emergency</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+                document.getElementById('gatesContainer').innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+
+        async function toggleGate(id, action) {
+            try {
+                const res = await fetch(`/api/gates/${id}/${action}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) loadGates();
+            } catch (e) { alert('Failed to toggle gate'); }
+        }
+
+        async function setGateMode(id, mode) {
+            try {
+                const res = await fetch(`/api/gates/${id}/mode`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode })
+                });
+                const data = await res.json();
+                if (data.success) loadGates();
+            } catch (e) { alert('Failed to set mode'); }
+        }
+
+        async function emergencyOpenAll() {
+            if (!confirm('Open ALL gates in emergency mode? This will override all gate states.')) return;
+            try {
+                const res = await fetch('/api/gates/all/emergency-open', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) loadGates();
+            } catch (e) { alert('Failed emergency open'); }
+        }
+
+        async function resetAllGates() {
+            if (!confirm('Reset all gates to auto mode and closed?')) return;
+            try {
+                const res = await fetch('/api/gates/all/reset', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) loadGates();
+            } catch (e) { alert('Failed reset'); }
+        }
+
+        async function loadGateLog() {
+            try {
+                const res = await fetch('/api/entry/logs?direction=&page=1');
+                const data = await res.json();
+                const html = (data.logs || []).slice(0, 10).map(l => {
+                    const time = new Date(l.timestamp).toLocaleString();
+                    return `<div class="log-item ${l.is_emergency ? 'log-emergency' : ''}">
+                        <span>${l.direction === 'entry' ? '&#9654;' : '&#9664;'}</span>
+                        <span>${l.vehicle}</span>
+                        <span>${l.visitor}</span>
+                        <span>${l.gate_name}</span>
+                        <span>${time}</span>
+                        ${l.is_emergency ? '<span class="log-badge badge-emergency">EMERGENCY</span>' : ''}
+                    </div>`;
+                }).join('');
+                document.getElementById('gateLog').innerHTML = html || '<div class="empty-state">No records</div>';
+            } catch (e) { console.error(e); }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGates();
+            loadGateLog();
+            setInterval(loadGates, 10000);
+        });
+    </script>
+</body>
+</html>

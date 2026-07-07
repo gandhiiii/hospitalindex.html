@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Hospital Gate</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo">+H</div><span class="logo-text">Gate Entry</span></div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item"><span class="nav-icon">&#9679;</span> Dashboard</a>
+            <a href="/gates" class="nav-item"><span class="nav-icon">&#9776;</span> Gate Control</a>
+            <a href="/entry" class="nav-item"><span class="nav-icon">&#9654;</span> Entry/Exit</a>
+            <a href="/visitors" class="nav-item"><span class="nav-icon">&#9787;</span> Visitors</a>
+            <a href="/reports" class="nav-item"><span class="nav-icon">&#128202;</span> Reports</a>
+            <a href="/alerts" class="nav-item"><span class="nav-icon">&#9888;</span> Alerts <span class="badge" id="alertBadge">0</span></a>
+            <hr class="nav-divider">
+            <a href="/users" class="nav-item"><span class="nav-icon">&#128101;</span> Users</a>
+            <a href="/settings" class="nav-item active"><span class="nav-icon">&#9881;</span> Settings</a>
+            <a href="/logout" class="nav-item"><span class="nav-icon">&#8617;</span> Logout</a>
+        </nav>
+        <div class="sidebar-footer"><div id="userInfo">Loading...</div></div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Settings & System</h1>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header"><h3>System Health</h3></div>
+                <div class="card-body" id="systemHealth"><div class="loading-spinner"></div></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>Data Management</h3></div>
+                <div class="card-body">
+                    <p style="margin-bottom:12px;color:#666">Clear old logs and alerts automatically.</p>
+                    <div class="form-group">
+                        <label>Delete records older than (days)</label>
+                        <input type="number" id="clearDays" class="form-input" value="90" min="1" max="365">
+                    </div>
+                    <button class="btn btn-danger" onclick="clearOldData()">&#128465; Clear Old Data</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        async function loadSystemHealth() {
+            try {
+                const res = await fetch('/api/system/health');
+                const h = await res.json();
+                document.getElementById('systemHealth').innerHTML = `
+                    <div class="health-grid">
+                        <div class="health-item"><span>Status</span><strong class="status-approved">${h.status}</strong></div>
+                        <div class="health-item"><span>DB Entries</span><strong>${h.db_entries}</strong></div>
+                        <div class="health-item"><span>Visitors</span><strong>${h.visitors}</strong></div>
+                        <div class="health-item"><span>Gates</span><strong>${h.gates}</strong></div>
+                        <div class="health-item"><span>Alerts</span><strong>${h.alerts}</strong></div>
+                        <div class="health-item"><span>Users</span><strong>${h.users}</strong></div>
+                        <div class="health-item"><span>Scheduled</span><strong>${h.scheduled}</strong></div>
+                    </div>
+                `;
+            } catch (e) { console.error(e); }
+        }
+
+        async function clearOldData() {
+            const days = parseInt(document.getElementById('clearDays').value);
+            if (!confirm(`Delete all logs and alerts older than ${days} days?`)) return;
+            const res = await fetch('/api/system/clear-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ older_than_days: days })
+            });
+            const data = await res.json();
+            alert(`Deleted ${data.deleted_logs} old records`);
+            loadSystemHealth();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSystemHealth);
+    </script>
+</body>
+</html>

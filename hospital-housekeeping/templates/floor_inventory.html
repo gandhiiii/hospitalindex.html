@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floor Inventory</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Floor Inventory</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-header">
+        <h2>&#9783; Floor Inventory (Sub-Inventory)</h2>
+        <div class="flex gap-8" style="flex-wrap:wrap">
+          <select class="form-control form-control-sm" id="floorFilter" onchange="loadFloorInventory()" style="width:auto;min-width:150px"><option value="">All Floors</option></select>
+          {% if role in ('admin','storekeeper') %}
+          <button class="btn btn-primary btn-sm" onclick="showSetupModal()">+ Setup Floor Inventory</button>
+          {% endif %}
+          <button class="btn btn-outline btn-sm" onclick="loadFloorInventory()">&#8635;</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Floor</th><th>Material</th><th>Category</th><th>Qty</th><th>Min Stock</th><th>Status</th>{% if role in ('admin','storekeeper') %}<th>Actions</th>{% endif %}</tr></thead><tbody id="invTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Adjust Modal -->
+<div class="modal-overlay" id="adjustModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h3>Adjust Inventory</h3><button class="modal-close" onclick="closeModal('adjustModal')">&times;</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;margin-bottom:8px"><strong id="adjustMaterialName"></strong> on <span id="adjustFloorName"></span></p>
+      <div class="form-group"><label>Quantity</label><input type="number" class="form-control" id="adjustQty" step="0.01" min="0"></div>
+      <div class="form-group"><label>Min Stock Level</label><input type="number" class="form-control" id="adjustMinStock" step="0.01" min="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('adjustModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAdjustment()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Setup Modal -->
+<div class="modal-overlay" id="setupModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Setup Floor Inventory</h3><button class="modal-close" onclick="closeModal('setupModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Floor *</label><select class="form-control" id="setupFloor"></select></div>
+      <div class="form-group"><label>Select Materials to Add</label>
+        <div id="materialCheckboxes" style="max-height:300px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:5px;padding:8px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('setupModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="setupFloorInv()">Add Selected</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+let adjustingId = null;
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadFloors() {
+  const r = await fetch('/api/floors');
+  const floors = await r.json();
+  const sel = document.getElementById('floorFilter');
+  sel.innerHTML = '<option value="">All Floors</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+  document.getElementById('setupFloor').innerHTML = '<option value="">Select floor...</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+  return floors;
+}
+
+async function loadFloorInventory() {
+  const floorId = document.getElementById('floorFilter').value;
+  const url = '/api/floor-inventory' + (floorId ? '?floor_id='+floorId : '');
+  const r = await fetch(url);
+  const data = await r.json();
+  const tbody = document.getElementById('invTable');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="{% if role in ('+"'admin','storekeeper'"+') %}6{% else %}5{% endif %}" class="empty-state"><p>No inventory records. Setup floor inventory first.</p></td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(i => {
+    const status = i.quantity <= i.min_stock ? (i.quantity === 0 ? 'out-of-stock' : 'low-stock') : '';
+    const badge = i.quantity <= 0 ? 'Out of Stock' : i.quantity <= i.min_stock ? 'Low Stock' : 'In Stock';
+    const badgeCls = i.quantity <= 0 ? 'danger' : i.quantity <= i.min_stock ? 'warning' : 'completed';
+    return '<tr class="'+status+'"><td>'+i.floor_name+'</td><td>'+i.material_name+'</td><td>'+i.material_category+'</td><td>'+i.quantity+' '+i.material_unit+'</td><td>'+i.min_stock+'</td><td><span class="badge badge-'+badgeCls+'">'+badge+'</span></td>' +
+      (currentRole === 'admin' || currentRole === 'storekeeper' ? '<td><button class="btn btn-info btn-xs" onclick="openAdjust('+i.id+',\''+i.material_name.replace(/'/g,"\\'")+'\',\''+i.floor_name.replace(/'/g,"\\'")+'\','+i.quantity+','+i.min_stock+')">Adjust</button></td>' : '') +
+    '</tr>';
+  }).join('');
+}
+
+function openAdjust(id, matName, floorName, qty, minStock) {
+  adjustingId = id;
+  document.getElementById('adjustMaterialName').textContent = matName;
+  document.getElementById('adjustFloorName').textContent = floorName;
+  document.getElementById('adjustQty').value = qty;
+  document.getElementById('adjustMinStock').value = minStock;
+  document.getElementById('adjustModal').classList.add('show');
+}
+
+async function saveAdjustment() {
+  if (!adjustingId) return;
+  await fetch('/api/floor-inventory/'+adjustingId+'/adjust', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      quantity: parseFloat(document.getElementById('adjustQty').value) || 0,
+      min_stock: parseFloat(document.getElementById('adjustMinStock').value) || 0
+    })
+  });
+  closeModal('adjustModal');
+  loadFloorInventory();
+}
+
+async function showSetupModal() {
+  document.getElementById('setupModal').classList.add('show');
+  const r = await fetch('/api/materials');
+  const mats = await r.json();
+  document.getElementById('materialCheckboxes').innerHTML = mats.map(m =>
+    '<label style="display:flex;align-items:center;gap:6px;padding:4px 6px;font-size:12px;cursor:pointer"><input type="checkbox" class="mat-check" value="'+m.id+'"> '+m.name+' <span style="color:var(--gray-500)">('+m.sku+')</span></label>'
+  ).join('');
+}
+
+async function setupFloorInv() {
+  const floorId = document.getElementById('setupFloor').value;
+  const checked = [...document.querySelectorAll('.mat-check:checked')].map(c => parseInt(c.value));
+  if (!floorId) { alert('Select a floor'); return; }
+  if (!checked.length) { alert('Select materials'); return; }
+  await fetch('/api/floor-inventory/setup', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({floor_id: parseInt(floorId), material_ids: checked})
+  });
+  closeModal('setupModal');
+  loadFloorInventory();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+loadFloors();
+loadFloorInventory();
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Materials Master</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Materials Master</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-header">
+        <h2>&#9746; Master Materials Inventory</h2>
+        <div class="flex gap-8" style="flex-wrap:wrap">
+          <div class="search-bar"><input type="text" class="form-control form-control-sm" id="matSearch" placeholder="Search..." oninput="loadMaterials()"></div>
+          <select class="form-control form-control-sm" id="catFilter" onchange="loadMaterials()" style="width:auto;min-width:120px"><option value="">All Categories</option></select>
+          {% if role in ('admin','storekeeper') %}
+          <button class="btn btn-primary btn-sm" onclick="showMaterialModal()">+ Add Material</button>
+          {% endif %}
+          <button class="btn btn-outline btn-sm" onclick="loadMaterials()">&#8635;</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Name</th><th>SKU</th><th>Category</th><th>Unit</th><th>Stock</th><th>Min Stock</th><th>Price</th><th>Supplier</th><th>Status</th>{% if role in ('admin','storekeeper') %}<th>Actions</th>{% endif %}</tr></thead><tbody id="matTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Material Modal -->
+<div class="modal-overlay" id="materialModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3 id="matModalTitle">Add Material</h3><button class="modal-close" onclick="closeModal('materialModal')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editMatId">
+      <div class="form-row">
+        <div class="form-group"><label>Name *</label><input class="form-control" id="matName"></div>
+        <div class="form-group"><label>SKU *</label><input class="form-control" id="matSku"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Category</label><input class="form-control" id="matCategory" list="catList"></div>
+        <div class="form-group"><label>Unit</label><select class="form-control" id="matUnit"><option>Pcs</option><option>Box</option><option>Pack</option><option>Bottle</option><option>Litre</option><option>Roll</option><option>Pair</option><option>Set</option><option>Can</option></select></div>
+      </div>
+      <datalist id="catList"></datalist>
+      <div class="form-row-4">
+        <div class="form-group"><label>Stock</label><input type="number" class="form-control" id="matStock" step="0.01"></div>
+        <div class="form-group"><label>Min Stock</label><input type="number" class="form-control" id="matMinStock" step="0.01"></div>
+        <div class="form-group"><label>Price (&#8377;)</label><input type="number" class="form-control" id="matPrice" step="0.01"></div>
+        <div class="form-group"><label>Supplier</label><input class="form-control" id="matSupplier"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('materialModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMaterial()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+let materials = [];
+
+async function loadMaterials() {
+  const r = await fetch('/api/materials');
+  materials = await r.json();
+  const search = document.getElementById('matSearch').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const cats = [...new Set(materials.map(m => m.category).filter(Boolean))];
+  const cf = document.getElementById('catFilter');
+  cf.innerHTML = '<option value="">All Categories</option>' + cats.map(c => '<option value="'+c+'"'+(c===cat?' selected':'')+'>'+c+'</option>').join('');
+  const datalist = document.getElementById('catList');
+  datalist.innerHTML = cats.map(c => '<option value="'+c+'">').join('');
+
+  const filtered = materials.filter(m => {
+    if (search && !m.name.toLowerCase().includes(search) && !m.sku.toLowerCase().includes(search)) return false;
+    if (cat && m.category !== cat) return false;
+    return true;
+  });
+  const tbody = document.getElementById('matTable');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="{% if role in ('+"'admin','storekeeper'"+') %}10{% else %}9{% endif %}" class="empty-state"><p>No materials found</p></td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(m => {
+    const cls = m.current_stock <= m.min_stock ? (m.current_stock === 0 ? 'out-of-stock' : 'low-stock') : '';
+    const badge = m.current_stock <= 0 ? 'Out of Stock' : m.current_stock <= m.min_stock ? 'Low Stock' : 'In Stock';
+    const badgeCls = m.current_stock <= 0 ? 'danger' : m.current_stock <= m.min_stock ? 'warning' : 'completed';
+    return '<tr class="'+cls+'"><td>'+m.name+'</td><td>'+m.sku+'</td><td>'+m.category+'</td><td>'+m.unit+'</td><td>'+m.current_stock+'</td><td>'+m.min_stock+'</td><td>&#8377;'+(m.price||0)+'</td><td class="truncate" style="max-width:120px">'+m.supplier+'</td><td><span class="badge badge-'+badgeCls+'">'+badge+'</span></td>' +
+      ((currentRole === 'admin' || currentRole === 'storekeeper') ? '<td><button class="btn btn-info btn-xs" onclick="editMaterial('+m.id+')">Edit</button> <button class="btn btn-danger btn-xs" onclick="deleteMaterial('+m.id+')">Del</button></td>' : '') +
+    '</tr>';
+  }).join('');
+}
+
+function showMaterialModal() {
+  document.getElementById('matModalTitle').textContent = 'Add Material';
+  document.getElementById('editMatId').value = '';
+  ['matName','matSku','matCategory','matStock','matMinStock','matPrice','matSupplier'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('matUnit').value = 'Pcs';
+  document.getElementById('materialModal').classList.add('show');
+}
+
+function editMaterial(id) {
+  const m = materials.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('matModalTitle').textContent = 'Edit Material';
+  document.getElementById('editMatId').value = m.id;
+  document.getElementById('matName').value = m.name;
+  document.getElementById('matSku').value = m.sku;
+  document.getElementById('matCategory').value = m.category||'';
+  document.getElementById('matUnit').value = m.unit||'Pcs';
+  document.getElementById('matStock').value = m.current_stock;
+  document.getElementById('matMinStock').value = m.min_stock;
+  document.getElementById('matPrice').value = m.price||0;
+  document.getElementById('matSupplier').value = m.supplier||'';
+  document.getElementById('materialModal').classList.add('show');
+}
+
+async function saveMaterial() {
+  const id = document.getElementById('editMatId').value;
+  const data = {
+    name: document.getElementById('matName').value,
+    sku: document.getElementById('matSku').value,
+    category: document.getElementById('matCategory').value,
+    unit: document.getElementById('matUnit').value,
+    current_stock: parseFloat(document.getElementById('matStock').value) || 0,
+    min_stock: parseFloat(document.getElementById('matMinStock').value) || 0,
+    price: parseFloat(document.getElementById('matPrice').value) || 0,
+    supplier: document.getElementById('matSupplier').value
+  };
+  if (!data.name || !data.sku) { alert('Name and SKU required'); return; }
+  const url = id ? '/api/materials/'+id : '/api/materials/create';
+  const method = id ? 'PUT' : 'POST';
+  const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}).then(r=>r.json());
+  if (r.error) { alert(r.error); return; }
+  closeModal('materialModal');
+  loadMaterials();
+}
+
+async function deleteMaterial(id) {
+  if (!confirm('Delete this material?')) return;
+  await fetch('/api/materials/'+id, {method:'DELETE'});
+  loadMaterials();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+loadMaterials();
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housekeeping Checklist</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Housekeeping Checklist</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="stats-grid" id="statusCounts"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>&#9745; Today's Housekeeping Checklist</h2>
+        <div class="flex gap-8" style="flex-wrap:wrap">
+          <select class="form-control form-control-sm" id="floorFilter" onchange="loadTodayLogs()" style="width:auto;min-width:130px"><option value="">All Floors</option></select>
+          <select class="form-control form-control-sm" id="areaFilter" onchange="loadTodayLogs()" style="width:auto;min-width:130px"><option value="">All Areas</option></select>
+          <select class="form-control form-control-sm" id="statusFilter" onchange="loadTodayLogs()" style="width:auto;min-width:100px"><option value="">All Status</option><option value="pending">Pending</option><option value="completed">Completed</option><option value="incomplete">Incomplete</option></select>
+          {% if role in ('admin','storekeeper') %}
+          <button class="btn btn-primary btn-sm" onclick="showGenerateModal()">+ Generate Today's Logs</button>
+          {% endif %}
+          <button class="btn btn-outline btn-sm" onclick="loadTodayLogs()">&#8635; Refresh</button>
+        </div>
+      </div>
+      <div class="card-body" id="checklistBody">
+        <div class="empty-state"><div class="icon">&#9745;</div><p>Select a floor to view today's checklist</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generate Modal -->
+<div class="modal-overlay" id="generateModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Generate Daily Logs</h3><button class="modal-close" onclick="closeModal('generateModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Floor *</label><select class="form-control" id="genFloor"></select></div>
+      <div class="form-group"><label>Assign Employee</label><select class="form-control" id="genEmployee"><option value="">Auto-assign</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('generateModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="generateLogs()">Generate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Modal -->
+<div class="modal-overlay" id="completeModal">
+  <div class="modal" style="max-width:450px">
+    <div class="modal-header"><h3>Update Task Status</h3><button class="modal-close" onclick="closeModal('completeModal')">&times;</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;margin-bottom:8px"><strong id="completeTaskName"></strong></p>
+      <div class="form-group"><label>Notes (optional)</label><textarea class="form-control" id="completeNotes" rows="2" placeholder="Add observations..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="failTask()">Mark Incomplete</button>
+      <button class="btn btn-success" onclick="completeTask()">&#10003; Mark Completed</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+let currentUserId = {{ current_user.id }};
+let completingLogId = null;
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadFloors() {
+  const r = await fetch('/api/floors');
+  const floors = await r.json();
+  const sel = document.getElementById('floorFilter');
+  sel.innerHTML = '<option value="">All Floors</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+  const gen = document.getElementById('genFloor');
+  gen.innerHTML = '<option value="">Select floor...</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+  return floors;
+}
+
+async function loadAreas() {
+  const r = await fetch('/api/areas');
+  const areas = await r.json();
+  const sel = document.getElementById('areaFilter');
+  sel.innerHTML = '<option value="">All Areas</option>' + areas.map(a => '<option value="'+a.id+'">'+a.name+'</option>').join('');
+  return areas;
+}
+
+async function loadEmployees() {
+  const r = await fetch('/api/employees?role=employee');
+  const emps = await r.json();
+  const sel = document.getElementById('genEmployee');
+  sel.innerHTML = '<option value="">Auto-assign (any employee)</option>' + emps.map(e => '<option value="'+e.id+'">'+e.full_name+'</option>').join('');
+}
+
+async function loadStatusCounts() {
+  const floorId = document.getElementById('floorFilter').value;
+  const r = await fetch('/api/housekeeping-logs/status-counts' + (floorId ? '?floor_id='+floorId : ''));
+  const d = await r.json();
+  document.getElementById('statusCounts').innerHTML = [
+    {label:'Total Tasks', value:d.total, icon:'&#9746;', cls:'blue'},
+    {label:'Completed', value:d.completed, icon:'&#10003;', cls:'green'},
+    {label:'Pending', value:d.pending, icon:'&#9200;', cls:'orange'},
+    {label:'Incomplete', value:d.incomplete, icon:'&#9888;', cls:'red'},
+  ].map(s => '<div class="stat-card '+s.cls+'"><div class="stat-icon">'+s.icon+'</div><div class="stat-info"><h3>'+s.value+'</h3><p>'+s.label+'</p></div></div>').join('');
+}
+
+async function loadTodayLogs() {
+  const floorId = document.getElementById('floorFilter').value;
+  const areaId = document.getElementById('areaFilter').value;
+  const status = document.getElementById('statusFilter').value;
+  let url = '/api/housekeeping-logs/today?';
+  if (floorId) url += 'floor_id='+floorId+'&';
+  if (areaId) url += 'area_id='+areaId+'&';
+  if (status) url += 'status='+status+'&';
+
+  const r = await fetch(url);
+  const data = await r.json();
+  loadStatusCounts();
+
+  const container = document.getElementById('checklistBody');
+  if (!data.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">&#9745;</div><p>No tasks for today. Click "Generate Today's Logs" to create daily checklist.</p></div>';
+    return;
+  }
+
+  container.innerHTML = data.map(group => `
+    <div class="checklist-area">
+      <div class="checklist-area-header">
+        <span>&#9730; ${group.area_name} <span class="count">(${group.tasks.length} tasks)</span></span>
+        <span class="count">${group.tasks.filter(t=>t.status==='completed').length}/${group.tasks.length} done</span>
+      </div>
+      ${group.tasks.map(t => `
+        <div class="checklist-item ${t.status}" data-id="${t.id}">
+          <span class="task-name">${t.task_name}</span>
+          <span class="task-cat badge badge-info">${t.task_category||'general'}</span>
+          ${t.status === 'completed' ? '<span class="badge badge-completed">Done</span>' : ''}
+          ${t.status === 'incomplete' ? '<span class="badge badge-incomplete">Incomplete</span>' : ''}
+          ${t.status === 'pending' ? '<span class="badge badge-pending">Pending</span>' : ''}
+          ${t.notes ? '<span class="truncate" style="font-size:10px;color:var(--gray-500);max-width:120px">'+t.notes+'</span>' : ''}
+          ${t.employee_name ? '<span style="font-size:10px;color:var(--gray-500)">by '+t.employee_name+'</span>' : ''}
+          ${(currentRole !== 'employee' || t.employee_name === userName) && t.status !== 'completed' ? '<button class="btn btn-success btn-xs" onclick="openComplete('+t.id+',\''+t.task_name.replace(/'/g,"\\'")+'\')">&#10003;</button>' : ''}
+          ${t.completed_at ? '<span style="font-size:9px;color:var(--gray-500)">'+new Date(t.completed_at).toLocaleTimeString()+'</span>' : ''}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function openComplete(logId, taskName) {
+  completingLogId = logId;
+  document.getElementById('completeTaskName').textContent = taskName;
+  document.getElementById('completeNotes').value = '';
+  document.getElementById('completeModal').classList.add('show');
+}
+
+async function completeTask() {
+  if (!completingLogId) return;
+  const notes = document.getElementById('completeNotes').value;
+  await fetch('/api/housekeeping-logs/'+completingLogId+'/complete', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({notes})
+  });
+  closeModal('completeModal');
+  loadTodayLogs();
+}
+
+async function failTask() {
+  if (!completingLogId) return;
+  const notes = document.getElementById('completeNotes').value;
+  await fetch('/api/housekeeping-logs/'+completingLogId+'/fail', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({notes})
+  });
+  closeModal('completeModal');
+  loadTodayLogs();
+}
+
+function showGenerateModal() {
+  document.getElementById('generateModal').classList.add('show');
+  if (!document.getElementById('genFloor').options.length) loadFloors();
+  if (!document.getElementById('genEmployee').options.length) loadEmployees();
+}
+
+async function generateLogs() {
+  const floorId = document.getElementById('genFloor').value;
+  const employeeId = document.getElementById('genEmployee').value;
+  if (!floorId) { alert('Please select a floor'); return; }
+  const r = await fetch('/api/housekeeping-logs/generate', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({floor_id: parseInt(floorId), employee_id: employeeId ? parseInt(employeeId) : null})
+  });
+  const d = await r.json();
+  alert(d.count + ' daily logs generated!');
+  closeModal('generateModal');
+  loadTodayLogs();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+loadFloors();
+loadAreas();
+loadTodayLogs();
+setInterval(loadTodayLogs, 60000);
+</script>
+</body>
+</html>

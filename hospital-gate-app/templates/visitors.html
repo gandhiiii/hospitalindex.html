@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitors - Hospital Gate</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo">+H</div><span class="logo-text">Gate Entry</span></div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item"><span class="nav-icon">&#9679;</span> Dashboard</a>
+            <a href="/gates" class="nav-item"><span class="nav-icon">&#9776;</span> Gate Control</a>
+            <a href="/entry" class="nav-item"><span class="nav-icon">&#9654;</span> Entry/Exit</a>
+            <a href="/visitors" class="nav-item active"><span class="nav-icon">&#9787;</span> Visitors</a>
+            <a href="/reports" class="nav-item"><span class="nav-icon">&#128202;</span> Reports</a>
+            <a href="/alerts" class="nav-item"><span class="nav-icon">&#9888;</span> Alerts <span class="badge" id="alertBadge">0</span></a>
+            <hr class="nav-divider">
+            <a href="/logout" class="nav-item"><span class="nav-icon">&#8617;</span> Logout</a>
+        </nav>
+        <div class="sidebar-footer"><div id="userInfo">Loading...</div></div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Visitor Management</h1>
+            <div class="topbar-right">
+                <button class="btn btn-primary" onclick="showRegisterModal()">+ Register New</button>
+            </div>
+        </header>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>All Visitors</h3>
+                <div class="search-bar">
+                    <input type="text" id="visitorSearch" class="form-input" placeholder="Search visitors..." oninput="filterVisitors()">
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Name</th><th>Vehicle</th><th>Purpose</th><th>Department</th><th>Pass Code</th><th>Status</th><th>Valid Until</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="visitorTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="visitorsContainer"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Register New Visitor</h3>
+                <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="visitorForm" onsubmit="return registerVisitor(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="vName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="text" id="vPhone" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="vEmail" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>ID Card Number</label>
+                            <input type="text" id="vIdCard" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Vehicle Number</label>
+                            <input type="text" id="vVehicle" class="form-input" placeholder="e.g., MH01AB1234">
+                        </div>
+                        <div class="form-group">
+                            <label>Purpose of Visit *</label>
+                            <input type="text" id="vPurpose" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Department</label>
+                            <input type="text" id="vDepartment" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Person to Meet</label>
+                            <input type="text" id="vPerson" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Valid For (days)</label>
+                        <input type="number" id="vValidDays" class="form-input" value="1" min="1" max="365">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Generate Pass</button>
+                </form>
+                <div id="visitorResult" class="scan-result" style="display:none"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        let allVisitors = [];
+
+        async function loadVisitors() {
+            const res = await fetch('/api/visitors');
+            allVisitors = await res.json();
+            renderVisitors(allVisitors);
+        }
+
+        function renderVisitors(list) {
+            const tbody = document.getElementById('visitorTableBody');
+            tbody.innerHTML = list.map(v => {
+                const valid = v.valid_until ? new Date(v.valid_until).toLocaleDateString() : 'N/A';
+                const statusClass = v.status === 'approved' ? 'status-approved' : (v.status === 'pending' ? 'status-pending' : 'status-expired');
+                return `<tr>
+                    <td><strong>${v.name}</strong></td>
+                    <td>${v.vehicle_number || '-'}</td>
+                    <td>${v.purpose || '-'}</td>
+                    <td>${v.department || '-'}</td>
+                    <td><code class="pass-code">${v.pass_code || '-'}</code></td>
+                    <td><span class="badge-sm ${statusClass}">${v.status}</span></td>
+                    <td>${valid}</td>
+                    <td>
+                        <button class="btn btn-xs btn-secondary" onclick="showQR('${v.qr_code}', '${v.name}')">QR</button>
+                        <button class="btn btn-xs btn-danger" onclick="updateStatus(${v.id}, 'expired')">Revoke</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterVisitors() {
+            const q = document.getElementById('visitorSearch').value.toLowerCase();
+            const filtered = allVisitors.filter(v =>
+                v.name.toLowerCase().includes(q) ||
+                (v.vehicle_number || '').toLowerCase().includes(q) ||
+                (v.pass_code || '').toLowerCase().includes(q) ||
+                (v.department || '').toLowerCase().includes(q)
+            );
+            renderVisitors(filtered);
+        }
+
+        function showRegisterModal() {
+            document.getElementById('registerModal').classList.add('show');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        async function registerVisitor(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('vName').value,
+                phone: document.getElementById('vPhone').value,
+                email: document.getElementById('vEmail').value,
+                id_card: document.getElementById('vIdCard').value,
+                vehicle_number: document.getElementById('vVehicle').value,
+                purpose: document.getElementById('vPurpose').value,
+                department: document.getElementById('vDepartment').value,
+                person_to_meet: document.getElementById('vPerson').value,
+                valid_days: parseInt(document.getElementById('vValidDays').value)
+            };
+            try {
+                const res = await fetch('/api/visitors/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                const resultDiv = document.getElementById('visitorResult');
+                resultDiv.style.display = 'block';
+                if (result.success) {
+                    resultDiv.className = 'scan-result success';
+                    resultDiv.innerHTML = `&#10003; Registered! Pass: <strong>${result.visitor.pass_code}</strong><br>
+                        <img src="data:image/png;base64,${result.visitor.qr_code}" style="width:150px;margin-top:10px">`;
+                    loadVisitors();
+                    document.getElementById('visitorForm').reset();
+                } else {
+                    resultDiv.className = 'scan-result error';
+                    resultDiv.textContent = 'Error: ' + (result.error || 'Registration failed');
+                }
+            } catch (e) {
+                document.getElementById('visitorResult').className = 'scan-result error';
+                document.getElementById('visitorResult').textContent = 'Connection error';
+                document.getElementById('visitorResult').style.display = 'block';
+            }
+        }
+
+        async function updateStatus(id, status) {
+            await fetch(`/api/visitors/${id}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            loadVisitors();
+        }
+
+        function showQR(qrBase64, name) {
+            if (!qrBase64) { alert('No QR code available'); return; }
+            const w = window.open('', '_blank', 'width=400,height=500');
+            w.document.write(`<html><head><title>QR - ${name}</title></head><body style="display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f5f5">
+                <div style="text-align:center;background:white;padding:40px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.1)">
+                <h2>${name}</h2>
+                <img src="data:image/png;base64,${qrBase64}" style="width:280px">
+                <p style="color:#666;margin-top:16px">Show this QR at the gate</p></div></body></html>`);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVisitors();
+        });
+    </script>
+</body>
+</html>

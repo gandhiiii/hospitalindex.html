@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Housekeeping Tasks</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Manage Tasks</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-header">
+        <h2>&#9881; Housekeeping Tasks</h2>
+        <div class="flex gap-8" style="flex-wrap:wrap">
+          <select class="form-control form-control-sm" id="catFilter" onchange="loadTasks()" style="width:auto;min-width:120px"><option value="">All Categories</option></select>
+          <select class="form-control form-control-sm" id="freqFilter" onchange="loadTasks()" style="width:auto;min-width:100px"><option value="">All Frequencies</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option></select>
+          {% if role == 'admin' %}
+          <button class="btn btn-primary btn-sm" onclick="showTaskModal()">+ Add Task</button>
+          {% endif %}
+          <button class="btn btn-outline btn-sm" onclick="loadTasks()">&#8635;</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Description</th><th>Frequency</th><th>Area Type</th><th>Category</th>{% if role == 'admin' %}<th>Actions</th>{% endif %}</tr></thead><tbody id="taskTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header"><h3 id="taskModalTitle">Add Task</h3><button class="modal-close" onclick="closeModal('taskModal')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editTaskId">
+      <div class="form-group"><label>Name *</label><input class="form-control" id="taskName"></div>
+      <div class="form-group"><label>Description</label><textarea class="form-control" id="taskDesc" rows="2"></textarea></div>
+      <div class="form-row-3">
+        <div class="form-group"><label>Frequency</label><select class="form-control" id="taskFreq"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option></select></div>
+        <div class="form-group"><label>Area Type</label><select class="form-control" id="taskAreaType"><option value="">All Areas</option></select></div>
+        <div class="form-group"><label>Category</label><select class="form-control" id="taskCategory">
+          <option value="floor_cleaning">Floor Cleaning</option><option value="surface">Surface Cleaning</option><option value="high_touch">High Touch Points</option>
+          <option value="sanitization">Sanitization</option><option value="waste">Waste Management</option><option value="dusting">Dusting</option>
+          <option value="glass">Glass Cleaning</option><option value="ppe">PPE</option><option value="patient_area">Patient Area</option>
+          <option value="medical">Medical Equipment</option><option value="deep_cleaning">Deep Cleaning</option><option value="hvac">HVAC</option>
+          <option value="fabric">Fabric Care</option><option value="isolation">Isolation</option><option value="lab_area">Lab Area</option>
+          <option value="staff_area">Staff Area</option><option value="entrance">Entrance</option><option value="dining_area">Dining Area</option>
+          <option value="walls">Walls</option><option value="other">Other</option>
+        </select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+let tasks = [];
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadAreaTypes() {
+  const r = await fetch('/api/area-types');
+  const types = await r.json();
+  const sel = document.getElementById('taskAreaType');
+  sel.innerHTML = '<option value="">All Areas</option>' + types.map(t => '<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>').join('');
+}
+
+async function loadTasks() {
+  const cat = document.getElementById('catFilter').value;
+  const freq = document.getElementById('freqFilter').value;
+  let url = '/api/tasks?';
+  if (cat) url += 'category='+cat+'&';
+  if (freq) url += 'frequency='+freq+'&';
+  const r = await fetch(url);
+  tasks = await r.json();
+
+  const cats = [...new Set(tasks.map(t => t.category).filter(Boolean))];
+  const cf = document.getElementById('catFilter');
+  cf.innerHTML = '<option value="">All Categories</option>' + cats.map(c => '<option value="'+c+'">'+c.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())+'</option>').join('');
+
+  const tbody = document.getElementById('taskTable');
+  if (!tasks.length) { tbody.innerHTML = '<tr><td colspan="{% if role == '"+"'admin'"+' %}6{% else %}5{% endif %}" class="empty-state"><p>No tasks defined</p></td></tr>'; return; }
+  tbody.innerHTML = tasks.map(t => '<tr><td>'+t.name+'</td><td class="truncate" style="max-width:200px">'+(t.description||'-')+'</td><td><span class="badge badge-info">'+t.frequency+'</span></td><td>'+(t.area_type||'All')+'</td><td>'+(t.category||'-').replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())+'</td>' +
+    (currentRole === 'admin' ? '<td><button class="btn btn-info btn-xs" onclick="editTask('+t.id+')">Edit</button> <button class="btn btn-danger btn-xs" onclick="deleteTask('+t.id+')">Del</button></td>' : '') +
+  '</tr>').join('');
+}
+
+function showTaskModal() {
+  document.getElementById('taskModalTitle').textContent = 'Add Task';
+  document.getElementById('editTaskId').value = '';
+  document.getElementById('taskName').value = '';
+  document.getElementById('taskDesc').value = '';
+  document.getElementById('taskFreq').value = 'daily';
+  document.getElementById('taskAreaType').value = '';
+  document.getElementById('taskCategory').value = 'floor_cleaning';
+  loadAreaTypes();
+  document.getElementById('taskModal').classList.add('show');
+}
+
+function editTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('taskModalTitle').textContent = 'Edit Task';
+  document.getElementById('editTaskId').value = t.id;
+  document.getElementById('taskName').value = t.name;
+  document.getElementById('taskDesc').value = t.description||'';
+  document.getElementById('taskFreq').value = t.frequency;
+  loadAreaTypes();
+  setTimeout(() => { document.getElementById('taskAreaType').value = t.area_type||''; }, 300);
+  document.getElementById('taskCategory').value = t.category||'';
+  document.getElementById('taskModal').classList.add('show');
+}
+
+async function saveTask() {
+  const id = document.getElementById('editTaskId').value;
+  const data = {
+    name: document.getElementById('taskName').value,
+    description: document.getElementById('taskDesc').value,
+    frequency: document.getElementById('taskFreq').value,
+    area_type: document.getElementById('taskAreaType').value,
+    category: document.getElementById('taskCategory').value
+  };
+  if (!data.name) { alert('Task name required'); return; }
+  const url = id ? '/api/tasks/'+id : '/api/tasks/create';
+  const method = id ? 'PUT' : 'POST';
+  await fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+  closeModal('taskModal');
+  loadTasks();
+}
+
+async function deleteTask(id) {
+  if (!confirm('Delete this task?')) return;
+  await fetch('/api/tasks/'+id, {method:'DELETE'});
+  loadTasks();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+loadTasks();
+</script>
+</body>
+</html>

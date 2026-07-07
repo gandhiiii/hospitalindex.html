@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Material Transfers</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Transfers</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-header">
+        <h2>&#8646; Material Transfers</h2>
+        <div class="flex gap-8">
+          {% if role in ('admin','storekeeper') %}
+          <button class="btn btn-primary btn-sm" onclick="showTransferModal()">+ New Transfer</button>
+          {% endif %}
+          <button class="btn btn-outline btn-sm" onclick="loadTransfers()">&#8635;</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Date</th><th>Material</th><th>From</th><th>To</th><th>Qty</th><th>Transferred By</th><th>Notes</th></tr></thead><tbody id="transferTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transfer Modal -->
+<div class="modal-overlay" id="transferModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header"><h3>New Material Transfer</h3><button class="modal-close" onclick="closeModal('transferModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Material *</label><select class="form-control" id="trMaterial"></select></div>
+      <div class="form-group"><label>From (leave empty for Main Store)</label><select class="form-control" id="trFrom"><option value="">Main Store</option></select></div>
+      <div class="form-group"><label>To Floor *</label><select class="form-control" id="trTo"></select></div>
+      <div class="form-group"><label>Quantity *</label><input type="number" class="form-control" id="trQty" step="0.01" min="0.01"></div>
+      <div class="form-group"><label>Notes</label><textarea class="form-control" id="trNotes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('transferModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTransfer()">Transfer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadTransfers() {
+  const r = await fetch('/api/transfers');
+  const data = await r.json();
+  const tbody = document.getElementById('transferTable');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><p>No transfers recorded yet</p></td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(t => '<tr><td>'+new Date(t.transferred_at).toLocaleDateString()+'</td><td>'+t.material_name+'</td><td>'+t.from_floor_name+'</td><td>'+t.to_floor_name+'</td><td>'+t.quantity+'</td><td>'+t.transferred_by+'</td><td class="truncate" style="max-width:150px">'+(t.notes||'-')+'</td></tr>').join('');
+}
+
+async function showTransferModal() {
+  document.getElementById('transferModal').classList.add('show');
+  const [mats, floors] = await Promise.all([
+    fetch('/api/materials').then(r=>r.json()),
+    fetch('/api/floors').then(r=>r.json())
+  ]);
+  document.getElementById('trMaterial').innerHTML = '<option value="">Select material...</option>' + mats.map(m => '<option value="'+m.id+'">'+m.name+' ('+m.sku+') - Stock: '+m.current_stock+'</option>').join('');
+  const fromSel = document.getElementById('trFrom');
+  fromSel.innerHTML = '<option value="">Main Store</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+  const toSel = document.getElementById('trTo');
+  toSel.innerHTML = '<option value="">Select destination floor...</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+}
+
+async function submitTransfer() {
+  const materialId = document.getElementById('trMaterial').value;
+  const fromFloorId = document.getElementById('trFrom').value;
+  const toFloorId = document.getElementById('trTo').value;
+  const qty = parseFloat(document.getElementById('trQty').value);
+  const notes = document.getElementById('trNotes').value;
+  if (!materialId || !toFloorId || !qty) { alert('Fill required fields'); return; }
+  const r = await fetch('/api/transfers/create', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      material_id: parseInt(materialId),
+      from_floor_id: fromFloorId ? parseInt(fromFloorId) : null,
+      to_floor_id: parseInt(toFloorId),
+      quantity: qty,
+      notes
+    })
+  }).then(r=>r.json());
+  if (r.error) { alert(r.error); return; }
+  closeModal('transferModal');
+  loadTransfers();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+loadTransfers();
+</script>
+</body>
+</html>

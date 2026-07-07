@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Material Requests</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Material Requests</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-header">
+        <h2>&#128221; Material Requests</h2>
+        <div class="flex gap-8" style="flex-wrap:wrap">
+          <select class="form-control form-control-sm" id="statusFilter" onchange="loadRequests()" style="width:auto;min-width:110px">
+            <option value="">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="fulfilled">Fulfilled</option><option value="rejected">Rejected</option>
+          </select>
+          {% if current_role in ('admin','storekeeper') %}
+          <select class="form-control form-control-sm" id="floorFilter" onchange="loadRequests()" style="width:auto;min-width:120px"><option value="">All Floors</option></select>
+          {% endif %}
+          <button class="btn btn-primary btn-sm" onclick="showRequestModal()">+ New Request</button>
+          <button class="btn btn-outline btn-sm" onclick="loadRequests()">&#8635;</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Date</th><th>Employee</th><th>Floor</th><th>Material</th><th>Qty Requested</th><th>Qty Approved</th><th>Status</th>{% if role in ('admin','storekeeper') %}<th>Actions</th>{% endif %}</tr></thead><tbody id="reqTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Request Modal -->
+<div class="modal-overlay" id="requestModal">
+  <div class="modal" style="max-width:450px">
+    <div class="modal-header"><h3>New Material Request</h3><button class="modal-close" onclick="closeModal('requestModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Floor *</label><select class="form-control" id="reqFloor"></select></div>
+      <div class="form-group"><label>Material *</label><select class="form-control" id="reqMaterial"></select></div>
+      <div class="form-group"><label>Quantity *</label><input type="number" class="form-control" id="reqQty" step="0.01" min="0.01"></div>
+      <div class="form-group"><label>Reason / Notes</label><textarea class="form-control" id="reqNotes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('requestModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRequest()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Approve Modal -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h3>Approve Request</h3><button class="modal-close" onclick="closeModal('approveModal')">&times;</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;margin-bottom:8px"><strong id="approveMaterial"></strong> - Requested: <span id="approveQtyReq"></span></p>
+      <div class="form-group"><label>Quantity to Approve</label><input type="number" class="form-control" id="approveQty" step="0.01" min="0.01"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('approveModal')">Cancel</button>
+      <button class="btn btn-success" onclick="approveRequest()">Approve</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+let approvingId = null;
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadFloors() {
+  const r = await fetch('/api/floors');
+  const floors = await r.json();
+  const sel = document.getElementById('reqFloor');
+  sel.innerHTML = '<option value="">Select floor...</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+  const filt = document.getElementById('floorFilter');
+  if (filt) filt.innerHTML = '<option value="">All Floors</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+}
+
+async function loadMaterials() {
+  const r = await fetch('/api/materials');
+  const mats = await r.json();
+  document.getElementById('reqMaterial').innerHTML = '<option value="">Select material...</option>' + mats.map(m => '<option value="'+m.id+'">'+m.name+' ('+m.sku+') - Stock: '+m.current_stock+'</option>').join('');
+}
+
+async function loadRequests() {
+  const status = document.getElementById('statusFilter').value;
+  const floorId = document.getElementById('floorFilter') ? document.getElementById('floorFilter').value : '';
+  let url = '/api/requests?';
+  if (status) url += 'status='+status+'&';
+  if (floorId) url += 'floor_id='+floorId+'&';
+  const r = await fetch(url);
+  const data = await r.json();
+  const tbody = document.getElementById('reqTable');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="{% if role in ('+"'admin','storekeeper'"+') %}8{% else %}7{% endif %}" class="empty-state"><p>No requests found</p></td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(req => {
+    const badgeCls = req.status === 'fulfilled' ? 'completed' : req.status === 'approved' ? 'info' : req.status === 'rejected' ? 'incomplete' : 'pending';
+    const actions = [];
+    if (req.status === 'pending' && (currentRole === 'admin' || currentRole === 'storekeeper')) {
+      actions.push('<button class="btn btn-success btn-xs" onclick="openApprove('+req.id+','+req.quantity_requested+',\''+req.material_name.replace(/'/g,"\\'")+'\')">Approve</button>');
+      actions.push('<button class="btn btn-danger btn-xs" onclick="rejectRequest('+req.id+')">Reject</button>');
+    }
+    if (req.status === 'approved' && (currentRole === 'admin' || currentRole === 'storekeeper')) {
+      actions.push('<button class="btn btn-primary btn-xs" onclick="fulfillRequest('+req.id+')">Fulfill</button>');
+    }
+    return '<tr><td>'+new Date(req.requested_at).toLocaleDateString()+'</td><td>'+req.employee_name+'</td><td>'+req.floor_name+'</td><td>'+req.material_name+'</td><td>'+req.quantity_requested+'</td><td>'+(req.quantity_approved||'-')+'</td><td><span class="badge badge-'+badgeCls+'">'+req.status+'</span></td>' +
+      ((currentRole === 'admin' || currentRole === 'storekeeper') ? '<td>'+actions.join(' ')+'</td>' : '') +
+    '</tr>';
+  }).join('');
+}
+
+function showRequestModal() {
+  document.getElementById('requestModal').classList.add('show');
+  loadFloors();
+  loadMaterials();
+}
+
+async function submitRequest() {
+  const floorId = document.getElementById('reqFloor').value;
+  const materialId = document.getElementById('reqMaterial').value;
+  const qty = parseFloat(document.getElementById('reqQty').value);
+  const notes = document.getElementById('reqNotes').value;
+  if (!floorId || !materialId || !qty) { alert('Fill all required fields'); return; }
+  await fetch('/api/requests/create', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({floor_id: parseInt(floorId), material_id: parseInt(materialId), quantity_requested: qty, notes})
+  });
+  closeModal('requestModal');
+  loadRequests();
+}
+
+function openApprove(id, qty, matName) {
+  approvingId = id;
+  document.getElementById('approveMaterial').textContent = matName;
+  document.getElementById('approveQtyReq').textContent = qty;
+  document.getElementById('approveQty').value = qty;
+  document.getElementById('approveModal').classList.add('show');
+}
+
+async function approveRequest() {
+  if (!approvingId) return;
+  const qty = parseFloat(document.getElementById('approveQty').value);
+  await fetch('/api/requests/'+approvingId+'/approve', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({quantity_approved: qty})
+  });
+  closeModal('approveModal');
+  loadRequests();
+}
+
+async function rejectRequest(id) {
+  if (!confirm('Reject this request?')) return;
+  await fetch('/api/requests/'+id+'/reject', {method:'POST'});
+  loadRequests();
+}
+
+async function fulfillRequest(id) {
+  if (!confirm('Fulfill this request? Stock will be deducted from main inventory and added to floor.')) return;
+  await fetch('/api/requests/'+id+'/fulfill', {method:'POST'}).then(r=>r.json()).then(d => {
+    if (d.error) { alert(d.error); return; }
+    loadRequests();
+  });
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+loadFloors();
+loadRequests();
+</script>
+</body>
+</html>

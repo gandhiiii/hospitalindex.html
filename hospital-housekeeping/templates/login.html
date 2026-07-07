@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housekeeping Manager - Login</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-icon">&#9776;</div>
+    <h1>Hospital Housekeeping</h1>
+    <p class="sub">Floor Inventory &amp; Checklist Management</p>
+    <div class="form-group"><label>Username</label><input class="form-control" id="loginUser" placeholder="Enter username" autofocus></div>
+    <div class="form-group"><label>Password</label><input class="form-control" id="loginPass" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()"></div>
+    <button class="btn btn-primary w-full" onclick="login()">Sign In</button>
+    <div class="login-error" id="loginError">Invalid username or password.</div>
+    <div class="demo-creds">
+      <strong>Demo Credentials:</strong><br>
+      admin / admin123 <span class="text-success">(Full Access)</span><br>
+      store / store123 <span class="text-warning">(Storekeeper)</span><br>
+      emp1 / emp123 <span class="text-info">(Employee)</span>
+    </div>
+  </div>
+</div>
+<script>
+function login() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  if (!username || !password) { document.getElementById('loginError').style.display = 'block'; return; }
+  fetch('/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username, password})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = '/';
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  })
+  .catch(() => { document.getElementById('loginError').style.display = 'block'; });
+}
+</script>
+</body>
+</html>

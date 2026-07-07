@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Hospital Gate</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">+H</div>
+            <span class="logo-text">Gate Entry</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item active"><span class="nav-icon">&#9679;</span> Dashboard</a>
+            <a href="/gates" class="nav-item"><span class="nav-icon">&#9776;</span> Gate Control</a>
+            <a href="/entry" class="nav-item"><span class="nav-icon">&#9654;</span> Entry/Exit</a>
+            <a href="/visitors" class="nav-item"><span class="nav-icon">&#9787;</span> Visitors</a>
+            <a href="/reports" class="nav-item"><span class="nav-icon">&#128202;</span> Reports</a>
+            <a href="/alerts" class="nav-item"><span class="nav-icon">&#9888;</span> Alerts <span class="badge" id="alertBadge">0</span></a>
+            <hr class="nav-divider">
+            <a href="/settings" class="nav-item"><span class="nav-icon">&#9881;</span> Settings</a>
+            <a href="/logout" class="nav-item"><span class="nav-icon">&#8617;</span> Logout</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div id="userInfo">Loading...</div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Dashboard</h1>
+            <div class="topbar-right">
+                <span id="liveTime" class="live-time"></span>
+                <button class="refresh-btn" onclick="loadDashboard()">&#8635; Refresh</button>
+            </div>
+        </header>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="stat-value" id="statTodayEntry">0</div><div class="stat-label">Today Entries</div></div>
+            <div class="stat-card"><div class="stat-value" id="statTodayExit">0</div><div class="stat-label">Today Exits</div></div>
+            <div class="stat-card emergency-stat"><div class="stat-value" id="statEmergency">0</div><div class="stat-label">Emergency</div></div>
+            <div class="stat-card"><div class="stat-value" id="statActive">0</div><div class="stat-label">Inside Campus</div></div>
+            <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">Pending Visitors</div></div>
+            <div class="stat-card"><div class="stat-value" id="statGates">0/0</div><div class="stat-label">Gates Open</div></div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card chart-card">
+                <div class="card-header"><h3>Traffic Today (Hourly)</h3></div>
+                <div class="card-body"><canvas id="hourlyChart" height="220"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>Recent Activity</h3></div>
+                <div class="card-body" id="recentActivity"><div class="loading-spinner"></div></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3>Gate Status Overview</h3></div>
+            <div class="card-body" id="gateOverview"><div class="loading-spinner"></div></div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        let hourlyChart = null;
+
+        function initHourlyChart(data) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            if (hourlyChart) hourlyChart.destroy();
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.hour),
+                    datasets: [{
+                        label: 'Entries',
+                        data: data.map(d => d.count),
+                        backgroundColor: 'rgba(0, 114, 255, 0.6)',
+                        borderColor: '#0072ff',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false }, ticks: { maxRotation: 0, font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        async function loadDashboard() {
+            try {
+                const [statsRes, recentRes, hourlyRes, gatesRes] = await Promise.all([
+                    fetch('/api/dashboard/stats'),
+                    fetch('/api/dashboard/recent'),
+                    fetch('/api/dashboard/hourly'),
+                    fetch('/api/gates')
+                ]);
+                const stats = await statsRes.json();
+                const recent = await recentRes.json();
+                const hourly = await hourlyRes.json();
+                const gates = await gatesRes.json();
+
+                document.getElementById('statTodayEntry').textContent = stats.today_entry;
+                document.getElementById('statTodayExit').textContent = stats.today_exit;
+                document.getElementById('statEmergency').textContent = stats.today_emergency;
+                document.getElementById('statActive').textContent = stats.active_inside;
+                document.getElementById('statPending').textContent = stats.pending_visitors;
+                document.getElementById('statGates').textContent = `${stats.open_gates}/${stats.total_gates}`;
+
+                initHourlyChart(hourly);
+
+                const recentHtml = recent.map(l => {
+                    const time = new Date(l.timestamp).toLocaleTimeString();
+                    const cls = l.is_emergency ? 'log-emergency' : (l.direction === 'entry' ? 'log-entry' : 'log-exit');
+                    const dirIcon = l.direction === 'entry' ? '&#9654;' : '&#9664;';
+                    return `<div class="log-item ${cls}">
+                        <span class="log-direction">${dirIcon}</span>
+                        <span class="log-vehicle">${l.vehicle || 'N/A'}</span>
+                        <span class="log-visitor">${l.visitor || 'Unknown'}</span>
+                        <span class="log-time">${time}</span>
+                        ${l.is_emergency ? '<span class="log-badge badge-emergency">EMERGENCY</span>' : ''}
+                        ${l.is_pre_registered ? '<span class="log-badge badge-pass">PASS</span>' : ''}
+                        ${!l.is_authorized ? '<span class="log-badge badge-unauth">UNVERIFIED</span>' : ''}
+                    </div>`;
+                }).join('');
+                document.getElementById('recentActivity').innerHTML = recentHtml || '<div class="empty-state">No activity today</div>';
+
+                const overviewHtml = gates.map(g => {
+                    const statusClass = g.status === 'open' ? 'gate-open' : 'gate-closed';
+                    const modeLabel = g.mode === 'emergency' ? 'EMERGENCY' : g.mode.toUpperCase();
+                    const modeClass = g.mode === 'emergency' ? 'mode-emergency' : (g.mode === 'auto' ? 'mode-auto' : 'mode-manual');
+                    return `<div class="gate-mini ${statusClass}">
+                        <div class="gate-mini-header">
+                            <strong>${g.name}</strong>
+                            <span class="gate-mini-status ${statusClass}">${g.status.toUpperCase()}</span>
+                        </div>
+                        <div class="gate-mini-loc">${g.location || ''}</div>
+                        <div class="gate-mini-mode ${modeClass}">${modeLabel}</div>
+                    </div>`;
+                }).join('');
+                document.getElementById('gateOverview').innerHTML = overviewHtml;
+            } catch (e) {
+                console.error('Dashboard load error:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            setInterval(loadDashboard, 15000);
+            setInterval(loadAlertCount, 30000);
+        });
+    </script>
+</body>
+</html>

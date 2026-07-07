@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry/Exit - Hospital Gate</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo">+H</div><span class="logo-text">Gate Entry</span></div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item"><span class="nav-icon">&#9679;</span> Dashboard</a>
+            <a href="/gates" class="nav-item"><span class="nav-icon">&#9776;</span> Gate Control</a>
+            <a href="/entry" class="nav-item active"><span class="nav-icon">&#9654;</span> Entry/Exit</a>
+            <a href="/visitors" class="nav-item"><span class="nav-icon">&#9787;</span> Visitors</a>
+            <a href="/reports" class="nav-item"><span class="nav-icon">&#128202;</span> Reports</a>
+            <a href="/alerts" class="nav-item"><span class="nav-icon">&#9888;</span> Alerts <span class="badge" id="alertBadge">0</span></a>
+            <hr class="nav-divider">
+            <a href="/logout" class="nav-item"><span class="nav-icon">&#8617;</span> Logout</a>
+        </nav>
+        <div class="sidebar-footer"><div id="userInfo">Loading...</div></div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Entry / Exit Registration</h1>
+            <div class="topbar-right">
+                <button class="refresh-btn" onclick="loadLogs()">&#8635; Refresh</button>
+            </div>
+        </header>
+
+        <div class="entry-layout">
+            <div class="entry-left">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Register Vehicle / Visitor</h3>
+                        <div class="card-tabs">
+                            <button class="tab-btn active" onclick="switchTab('manual', this)">Manual Entry</button>
+                            <button class="tab-btn" onclick="switchTab('anpr', this)">ANPR Scan</button>
+                            <button class="tab-btn" onclick="switchTab('pass', this)">Pass Code</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form id="entryForm" onsubmit="return submitEntry(event)">
+                            <div id="tabManual" class="tab-content active">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Direction</label>
+                                        <select id="direction" class="form-input">
+                                            <option value="entry">Entry (In)</option>
+                                            <option value="exit">Exit (Out)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Gate</label>
+                                        <select id="gateId" class="form-input"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Vehicle Number</label>
+                                    <input type="text" id="vehicleNumber" class="form-input" placeholder="e.g., MH01AB1234">
+                                </div>
+                                <div class="form-group">
+                                    <label>Visitor Name</label>
+                                    <input type="text" id="visitorName" class="form-input" placeholder="Visitor full name">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select id="category" class="form-input">
+                                            <option value="general">General</option>
+                                            <option value="staff">Staff</option>
+                                            <option value="patient">Patient</option>
+                                            <option value="visitor">Visitor</option>
+                                            <option value="vendor">Vendor</option>
+                                            <option value="emergency">Emergency</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Manual Plate (override)</label>
+                                        <input type="text" id="manualPlate" class="form-input" placeholder="Override ANPR">
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tabAnpr" class="tab-content">
+                                <div class="anpr-scanner">
+                                    <div class="scanner-box">
+                                        <div class="scanner-frame">
+                                            <div class="scan-line"></div>
+                                            <div class="scan-placeholder">&#128247; Camera Feed</div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" onclick="simulateScan()">&#9654; Simulate ANPR Scan</button>
+                                    <div id="scanResult" class="scan-result"></div>
+                                </div>
+                            </div>
+                            <div id="tabPass" class="tab-content">
+                                <div class="form-group">
+                                    <label>Enter Pass Code</label>
+                                    <input type="text" id="passCode" class="form-input" placeholder="e.g., ABC12345" style="font-size:20px;letter-spacing:3px;text-transform:uppercase;text-align:center">
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="verifyPass()">&#10003; Verify Pass</button>
+                                <div id="passVerifyResult" class="scan-result"></div>
+                            </div>
+                            <div class="form-group" style="margin-top:16px">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="isEmergency">
+                                    <span class="checkbox-text">Emergency Vehicle (overrides all)</span>
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block" id="submitEntryBtn">&#9654; Register Entry / Exit</button>
+                            <div id="entryResult" class="scan-result" style="display:none"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="entry-right">
+                <div class="card">
+                    <div class="card-header"><h3>Quick Stats</h3></div>
+                    <div class="card-body" id="quickStats">
+                        <div class="stat-mini"><span>Today In:</span> <strong id="qsIn">0</strong></div>
+                        <div class="stat-mini"><span>Today Out:</span> <strong id="qsOut">0</strong></div>
+                        <div class="stat-mini"><span>Emergency:</span> <strong id="qsEmerg">0</strong></div>
+                        <div class="stat-mini"><span>Inside:</span> <strong id="qsInside">0</strong></div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:16px">
+                    <div class="card-header"><h3>Recent Registrations</h3></div>
+                    <div class="card-body" id="recentLogs"><div class="loading-spinner"></div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        let currentTab = 'manual';
+
+        function switchTab(tab, btn) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+        }
+
+        async function loadGates() {
+            const res = await fetch('/api/gates');
+            const gates = await res.json();
+            const sel = document.getElementById('gateId');
+            sel.innerHTML = gates.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+        }
+
+        async function loadQuickStats() {
+            const res = await fetch('/api/dashboard/stats');
+            const s = await res.json();
+            document.getElementById('qsIn').textContent = s.today_entry;
+            document.getElementById('qsOut').textContent = s.today_exit;
+            document.getElementById('qsEmerg').textContent = s.today_emergency;
+            document.getElementById('qsInside').textContent = s.active_inside;
+        }
+
+        async function loadLogs() {
+            const res = await fetch('/api/entry/logs?page=1');
+            const data = await res.json();
+            const html = (data.logs || []).slice(0, 8).map(l => {
+                const time = new Date(l.timestamp).toLocaleTimeString();
+                return `<div class="log-item ${l.is_emergency ? 'log-emergency' : ''}">
+                    <span>${l.direction === 'entry' ? '&#9654;' : '&#9664;'}</span>
+                    <span>${l.vehicle}</span>
+                    <span>${l.visitor}</span>
+                    <span>${time}</span>
+                    ${l.is_emergency ? '<span class="log-badge badge-emergency">EMERG</span>' : ''}
+                    ${l.is_pre_registered ? '<span class="log-badge badge-pass">PASS</span>' : ''}
+                </div>`;
+            }).join('');
+            document.getElementById('recentLogs').innerHTML = html || '<div class="empty-state">No entries</div>';
+        }
+
+        async function simulateScan() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Scanning...';
+            const resultDiv = document.getElementById('scanResult');
+            resultDiv.className = 'scan-result scanning';
+            resultDiv.textContent = 'Scanning number plate...';
+
+            setTimeout(async () => {
+                try {
+                    const res = await fetch('/api/entry/anpr', { method: 'POST' });
+                    const data = await res.json();
+                    resultDiv.className = 'scan-result success';
+                    resultDiv.innerHTML = `&#10003; Detected: <strong>${data.plate}</strong> (${data.confidence}% confidence)`;
+                    document.getElementById('vehicleNumber').value = data.plate;
+                    document.getElementById('manualPlate').value = data.plate;
+                } catch (e) {
+                    resultDiv.className = 'scan-result error';
+                    resultDiv.textContent = 'Scan failed';
+                }
+                btn.disabled = false;
+                btn.textContent = '&#9654; Simulate ANPR Scan';
+            }, 1500);
+        }
+
+        async function verifyPass() {
+            const code = document.getElementById('passCode').value.trim().toUpperCase();
+            if (!code) return;
+            const resultDiv = document.getElementById('passVerifyResult');
+            try {
+                const res = await fetch('/api/visitors/verify-pass', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pass_code: code })
+                });
+                const data = await res.json();
+                if (data.valid) {
+                    resultDiv.className = 'scan-result success';
+                    resultDiv.innerHTML = `&#10003; Valid Pass: <strong>${data.visitor.name}</strong> (${data.visitor.vehicle_number || 'No vehicle'})`;
+                    document.getElementById('visitorName').value = data.visitor.name;
+                    if (data.visitor.vehicle_number) document.getElementById('vehicleNumber').value = data.visitor.vehicle_number;
+                } else {
+                    resultDiv.className = 'scan-result error';
+                    resultDiv.textContent = '&#10007; ' + (data.error || 'Invalid pass');
+                }
+            } catch (e) {
+                resultDiv.className = 'scan-result error';
+                resultDiv.textContent = 'Verification failed';
+            }
+        }
+
+        async function submitEntry(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitEntryBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            const data = {
+                direction: document.getElementById('direction').value,
+                gate_id: parseInt(document.getElementById('gateId').value),
+                vehicle_number: document.getElementById('vehicleNumber').value.trim(),
+                visitor_name: document.getElementById('visitorName').value.trim(),
+                category: document.getElementById('category').value,
+                manual_plate: document.getElementById('manualPlate').value.trim(),
+                pass_code: document.getElementById('passCode').value.trim().toUpperCase(),
+                is_emergency: document.getElementById('isEmergency').checked
+            };
+
+            try {
+                const res = await fetch('/api/entry/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                const resultDiv = document.getElementById('entryResult');
+                resultDiv.style.display = 'block';
+
+                if (result.success) {
+                    resultDiv.className = 'scan-result success';
+                    let msg = `&#10003; ${result.direction === 'entry' ? 'Entry' : 'Exit'} registered for ${result.visitor_name}`;
+                    msg += `<br>Plate: <strong>${result.number_plate}</strong> (${result.confidence}%)`;
+                    msg += `<br>Authorized: ${result.is_authorized ? '&#10003;' : '&#10007;'}`;
+                    if (result.gate_opened) msg += `<br>Gate opened automatically`;
+                    resultDiv.innerHTML = msg;
+                    loadLogs();
+                    loadQuickStats();
+                    document.getElementById('entryForm').reset();
+                } else {
+                    resultDiv.className = 'scan-result error';
+                    resultDiv.textContent = '&#10007; ' + (result.error || 'Registration failed');
+                }
+            } catch (e) {
+                const resultDiv = document.getElementById('entryResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'scan-result error';
+                resultDiv.textContent = 'Connection error';
+            }
+            btn.disabled = false;
+            btn.textContent = '&#9654; Register Entry / Exit';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGates();
+            loadLogs();
+            loadQuickStats();
+            setInterval(loadLogs, 10000);
+            setInterval(loadQuickStats, 15000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housekeeping Manager - Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger" id="hamburger">&#9776;</button>
+    <div class="breadcrumb">Dashboard</div>
+    <div class="header-right">
+      <span class="header-user role-{{ role }}" id="headerUser"></span>
+      <button class="btn btn-outline btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stats-grid" id="dashStats"></div>
+
+    <div class="card">
+      <div class="card-header"><h2>&#9654; Quick Actions</h2></div>
+      <div class="card-body">
+        <div class="flex gap-8" style="flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="navigate('housekeeping')">&#9745; Open Housekeeping</button>
+          <button class="btn btn-success" onclick="navigate('inventory')">&#9654; Floor Inventory</button>
+          <button class="btn btn-warning" onclick="navigate('requests')">&#128221; Material Requests</button>
+          <button class="btn btn-info" onclick="navigate('transfers')">&#8646; Transfers</button>
+          {% if role in ('admin','storekeeper') %}
+          <button class="btn btn-outline" onclick="navigate('employees')">&#128101; Employees</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>&#128200; Recent Housekeeping Activity</h2></div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Task</th><th>Area</th><th>Employee</th><th>Status</th><th>Time</th></tr></thead><tbody id="recentActivity"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+let currentUserId = {{ current_user.id }};
+
+function logout() { window.location.href = '/logout'; }
+function navigate(page) { window.location.href = '/' + page; }
+
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function loadStats() {
+  fetch('/api/dashboard/stats').then(r=>r.json()).then(d => {
+    const stats = [
+      {label:'Today Completed', value:d.today_completed, sub:'/'+d.today_logs+' tasks', icon:'&#10003;', cls:'green'},
+      {label:'Pending Tasks', value:d.today_pending_tasks, sub:'today', icon:'&#9200;', cls:'orange'},
+      {label:'Floors', value:d.total_floors, sub:'in hospital', icon:'&#9730;', cls:'blue'},
+      {label:'Materials', value:d.total_materials, sub:'master inventory', icon:'&#9733;', cls:'purple'},
+      {label:'Employees', value:d.total_employees, sub:'active', icon:'&#128101;', cls:'teal'},
+      {label:'Material Requests Pending', value:d.pending_requests, sub:'awaiting approval', icon:'&#128221;', cls:'orange'},
+      {label:'Low Stock (Main)', value:d.low_stock_materials, sub:'items below min', icon:'&#9888;', cls:'red'},
+      {label:'Low Stock (Floor)', value:d.low_stock_floor, sub:'floor inventory', icon:'&#9888;', cls:'red'},
+    ];
+    document.getElementById('dashStats').innerHTML = stats.map(s =>
+      '<div class="stat-card '+s.cls+'"><div class="stat-icon">'+s.icon+'</div><div class="stat-info"><h3>'+s.value+'</h3><p>'+s.label+'</p><div class="sub">'+s.sub+'</div></div></div>'
+    ).join('');
+
+    document.getElementById('recentActivity').innerHTML = (d.recent_activity||[]).map(a =>
+      '<tr><td>'+a.task+'</td><td>'+a.area+'</td><td>'+a.employee+'</td><td><span class="badge badge-'+a.status+'">'+a.status+'</span></td><td>'+new Date(a.time).toLocaleString()+'</td></tr>'
+    ).join('') || '<tr><td colspan="5" class="empty-state"><p>No recent activity</p></td></tr>';
+  });
+}
+loadStats();
+setInterval(loadStats, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Areas</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'layout.html' %}
+<div class="main">
+  <div class="header">
+    <button class="hamburger">&#9776;</button>
+    <div class="breadcrumb"><a href="/" style="color:var(--gray-700);text-decoration:none">Dashboard</a> / <span>Areas</span></div>
+    <div class="header-right"><span class="header-user role-{{ role }}" id="headerUser"></span><button class="btn btn-outline btn-sm" onclick="logout()">Logout</button></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-header">
+        <h2>&#9730; Areas / Zones</h2>
+        <div class="flex gap-8" style="flex-wrap:wrap">
+          <select class="form-control form-control-sm" id="floorFilter" onchange="loadAreas()" style="width:auto;min-width:130px"><option value="">All Floors</option></select>
+          {% if role == 'admin' %}
+          <button class="btn btn-primary btn-sm" onclick="showAreaModal()">+ Add Area</button>
+          {% endif %}
+          <button class="btn btn-outline btn-sm" onclick="loadAreas()">&#8635;</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Floor</th><th>Type</th><th>Description</th>{% if role == 'admin' %}<th>Actions</th>{% endif %}</tr></thead><tbody id="areaTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Area Modal -->
+<div class="modal-overlay" id="areaModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h3 id="areaModalTitle">Add Area</h3><button class="modal-close" onclick="closeModal('areaModal')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editAreaId">
+      <div class="form-group"><label>Name *</label><input class="form-control" id="areaName"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Floor *</label><select class="form-control" id="areaFloor"></select></div>
+        <div class="form-group"><label>Type *</label><select class="form-control" id="areaType">
+          <option value="ward">Ward</option><option value="icu">ICU</option><option value="ot">OT</option><option value="emergency">Emergency</option>
+          <option value="corridor">Corridor</option><option value="toilet">Toilet</option><option value="reception">Reception</option>
+          <option value="waiting">Waiting</option><option value="consultation">Consultation</option><option value="pharmacy">Pharmacy</option>
+          <option value="lab">Lab</option><option value="office">Office</option><option value="staffroom">Staff Room</option>
+          <option value="nursestation">Nurse Station</option><option value="storage">Storage</option><option value="cafeteria">Cafeteria</option>
+          <option value="entrance">Entrance</option><option value="private">Private Room</option><option value="vip">VIP Suite</option>
+          <option value="maternity">Maternity</option><option value="pediatric">Pediatric</option><option value="nursery">Nursery</option>
+          <option value="dining">Dining</option><option value="lounge">Lounge</option><option value="other">Other</option>
+        </select></div>
+      </div>
+      <div class="form-group"><label>Description</label><textarea class="form-control" id="areaDesc" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('areaModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveArea()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentRole = '{{ role }}';
+const userName = '{{ current_user.full_name }}';
+let areas = [];
+let floors = [];
+document.getElementById('headerUser').innerHTML = userName + ' <span class="role-badge">' + currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + '</span>';
+
+function logout() { window.location.href = '/logout'; }
+
+async function loadFloors() {
+  const r = await fetch('/api/floors');
+  floors = await r.json();
+  const sel = document.getElementById('floorFilter');
+  sel.innerHTML = '<option value="">All Floors</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+  document.getElementById('areaFloor').innerHTML = '<option value="">Select floor...</option>' + floors.map(f => '<option value="'+f.id+'">'+f.name+'</option>').join('');
+}
+
+async function loadAreas() {
+  const floorId = document.getElementById('floorFilter').value;
+  const url = '/api/areas' + (floorId ? '?floor_id='+floorId : '');
+  const r = await fetch(url);
+  areas = await r.json();
+  const tbody = document.getElementById('areaTable');
+  if (!areas.length) { tbody.innerHTML = '<tr><td colspan="{% if role == '"+"'admin'"+' %}5{% else %}4{% endif %}" class="empty-state"><p>No areas defined</p></td></tr>'; return; }
+  tbody.innerHTML = areas.map(a => '<tr><td>'+a.name+'</td><td>'+a.floor_name+'</td><td><span class="badge badge-info">'+a.area_type+'</span></td><td>'+(a.description||'-')+'</td>' +
+    (currentRole === 'admin' ? '<td><button class="btn btn-info btn-xs" onclick="editArea('+a.id+')">Edit</button> <button class="btn btn-danger btn-xs" onclick="deleteArea('+a.id+')">Del</button></td>' : '') +
+  '</tr>').join('');
+}
+
+function showAreaModal() {
+  document.getElementById('areaModalTitle').textContent = 'Add Area';
+  document.getElementById('editAreaId').value = '';
+  document.getElementById('areaName').value = '';
+  document.getElementById('areaFloor').value = '';
+  document.getElementById('areaType').value = 'ward';
+  document.getElementById('areaDesc').value = '';
+  if (!floors.length) loadFloors();
+  document.getElementById('areaModal').classList.add('show');
+}
+
+function editArea(id) {
+  const a = areas.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('areaModalTitle').textContent = 'Edit Area';
+  document.getElementById('editAreaId').value = a.id;
+  document.getElementById('areaName').value = a.name;
+  document.getElementById('areaFloor').value = a.floor_id;
+  document.getElementById('areaType').value = a.area_type;
+  document.getElementById('areaDesc').value = a.description||'';
+  document.getElementById('areaModal').classList.add('show');
+}
+
+async function saveArea() {
+  const id = document.getElementById('editAreaId').value;
+  const data = {
+    name: document.getElementById('areaName').value,
+    floor_id: parseInt(document.getElementById('areaFloor').value),
+    area_type: document.getElementById('areaType').value,
+    description: document.getElementById('areaDesc').value
+  };
+  if (!data.name || !data.floor_id) { alert('Name and Floor required'); return; }
+  const url = id ? '/api/areas/'+id : '/api/areas/create';
+  const method = id ? 'PUT' : 'POST';
+  const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}).then(r=>r.json());
+  if (r.error) { alert(r.error); return; }
+  closeModal('areaModal');
+  loadAreas();
+}
+
+async function deleteArea(id) {
+  if (!confirm('Delete this area?')) return;
+  await fetch('/api/areas/'+id, {method:'DELETE'});
+  loadAreas();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+loadFloors();
+loadAreas();
+</script>
+</body>
+</html>
