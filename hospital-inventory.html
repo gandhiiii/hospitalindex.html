@@ -9,6 +9,8 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
 :root{--primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;--danger:#d93025;--success:#1e8e3e;--warning:#f9ab00;--orange:#f57c00;--gray-50:#f8f9fa;--gray-100:#f1f3f4;--gray-200:#e8eaed;--gray-300:#dadce0;--gray-500:#9aa0a6;--gray-700:#5f6368;--gray-900:#202124;--sidebar-w:250px;--header-h:60px;--radius:8px;--shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.15)}
@@ -586,6 +588,41 @@ textarea.form-control{resize:vertical;min-height:60px}
 </div>
 <script>
 // ============================================================
+// FIREBASE CONFIG — Replace with your Firebase project details
+// ============================================================
+// Get from: Firebase Console > Project Settings > General > Your apps > Web
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+let FIRESTORE_DB = null, FS_UNSUBSCRIBE = null, FS_READY = false, FS_WRITE_PENDING = false;
+if (typeof firebase !== 'undefined') {
+  try {
+    const app = firebase.initializeApp(FIREBASE_CONFIG);
+    FIRESTORE_DB = firebase.firestore(app);
+    FIRESTORE_DB.enablePersistence().catch(()=>{});
+    FS_READY = true;
+  } catch(e) { console.warn('FB init:',e); }
+}
+async function fsSave(d) {
+  if(!FS_READY)return;
+  FS_WRITE_PENDING=true;
+  try{await FIRESTORE_DB.collection('hims').doc('main').set(d);}catch(e){}
+  setTimeout(()=>{FS_WRITE_PENDING=false;},1000);
+}
+async function fsLoad() {
+  if(!FS_READY)return null;
+  try{const s=await FIRESTORE_DB.collection('hims').doc('main').get();return s.exists?s.data():null;}catch(e){return null;}
+}
+function fsListen(cb) {
+  if(!FS_READY)return;
+  FS_UNSUBSCRIBE=FIRESTORE_DB.collection('hims').doc('main').onSnapshot(s=>{if(!FS_WRITE_PENDING&&s.exists)cb(s.data());},()=>{});
+}
+// ============================================================
 // DATA LAYER
 // ============================================================
 const DB_KEY = 'hospital_inventory';
@@ -1075,7 +1112,7 @@ function autoFillOutForm(itemId){
 }
 let mrnCounter = parseInt(localStorage.getItem('hims_mrn_counter') || (DATA.transactions.length + 1));
 function nextMRN() { mrnCounter++; localStorage.setItem('hims_mrn_counter', mrnCounter); return 'MRN-' + String(mrnCounter).padStart(6,'0'); }
-function saveData() { localStorage.setItem(DB_KEY, JSON.stringify(DATA)); broadcastData(); }
+function saveData() { const raw=JSON.stringify(DATA); localStorage.setItem(DB_KEY, raw); broadcastData(); if(FS_READY)fsSave(DATA); }
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function getItem(id) { return DATA.items.find(i => i.id === id); }
 function getCategory(id) { return DATA.categories.find(c => c.id === id); }
@@ -2348,6 +2385,29 @@ function init() {
   setInterval(()=>{renderDemands();updateDemandBadge();renderReturns();updateReturnBadge();renderStock();renderExpiry();renderForecast();renderDashboard();},5000);
 }
 if(!checkAuth()){document.getElementById('loginOverlay').classList.remove('hidden');}else{init();}
+// Firestore sync (load remote data, seed if empty, listen for real-time changes)
+(async()=>{
+  if(!FS_READY)return;
+  const remote=await fsLoad();
+  if(remote){
+    const rw=JSON.stringify(remote);
+    if(rw!==localStorage.getItem(DB_KEY)){
+      localStorage.setItem(DB_KEY,rw);
+      Object.assign(DATA,loadData());
+      renderAll();
+    }
+  } else {
+    fsSave(DATA);
+  }
+  fsListen(rd=>{
+    const rw=JSON.stringify(rd);
+    if(rw!==localStorage.getItem(DB_KEY)){
+      localStorage.setItem(DB_KEY,rw);
+      Object.assign(DATA,loadData());
+      renderAll();
+    }
+  });
+})();
 </script>
 </body>
 </html>
