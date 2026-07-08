@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hospital Inventory Management System - NABH Compliant</title>
-
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
 :root{--primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;--danger:#d93025;--success:#1e8e3e;--warning:#f9ab00;--orange:#f57c00;--gray-50:#f8f9fa;--gray-100:#f1f3f4;--gray-200:#e8eaed;--gray-300:#dadce0;--gray-500:#9aa0a6;--gray-700:#5f6368;--gray-900:#202124;--sidebar-w:250px;--header-h:60px;--radius:8px;--shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.15)}
@@ -103,41 +107,8 @@ textarea.form-control{resize:vertical;min-height:60px}
 .badge-danger{background:#fce8e6;color:var(--danger)}
 .badge-critical{background:#d32f2f;color:#fff}
 .badge-quarantine{background:#fff3e0;color:var(--orange)}
-.sidebar-legend{margin:8px 12px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:6px;font-size:10px;cursor:pointer;user-select:none}
-.sidebar-legend .legend-title{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.5);font-size:9px;text-transform:uppercase;letter-spacing:.5px}
-.sidebar-legend .legend-title:hover{color:rgba(255,255,255,.7)}
-.sidebar-legend .legend-body{display:none;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08)}
-.sidebar-legend.open .legend-body{display:block}
-.legend-item{display:flex;align-items:center;gap:6px;padding:3px 0;color:rgba(255,255,255,.65);font-size:10px;line-height:1.3}
-.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.legend-dot.green{background:var(--success)}
-.legend-dot.yellow{background:var(--warning)}
-.legend-dot.orange{background:var(--orange)}
-.legend-dot.red{background:var(--danger)}
-.legend-dot.blue{background:var(--primary)}
-.status-legend{display:flex;align-items:center;gap:12px;padding:6px 10px;margin-bottom:8px;font-size:10px;color:var(--gray-700);background:var(--gray-50);border-radius:6px;border:1px solid var(--gray-200);flex-wrap:wrap}
-.status-legend .sl-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
-.status-legend .sl-dot.sl-green{background:var(--success)}
-.status-legend .sl-dot.sl-yellow{background:var(--warning)}
-.status-legend .sl-dot.sl-orange{background:var(--orange)}
-.status-legend .sl-dot.sl-red{background:var(--danger)}
-.status-legend .sl-dot.sl-blue{background:var(--primary)}
-.status-legend span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .badge-pass{background:#e6f4ea;color:var(--success)}
 .badge-fail{background:#fce8e6;color:var(--danger)}
-.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:380px;width:100%;pointer-events:none}
-.toast{background:var(--gray-900);color:#fff;padding:12px 16px;border-radius:8px;font-size:12px;line-height:1.4;box-shadow:0 8px 24px rgba(0,0,0,.25);transform:translateX(120%);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);display:flex;align-items:flex-start;gap:10px;pointer-events:auto}
-.toast.show{transform:translateX(0);opacity:1}
-.toast .toast-icon{font-size:16px;flex-shrink:0;margin-top:1px}
-.toast .toast-body{flex:1;min-width:0}
-.toast .toast-title{font-weight:600;font-size:12px;margin-bottom:2px}
-.toast .toast-text{font-size:11px;opacity:.8;word-wrap:break-word}
-.toast .toast-close{font-size:14px;cursor:pointer;opacity:.5;flex-shrink:0;background:none;border:none;color:#fff;padding:0;line-height:1}
-.toast .toast-close:hover{opacity:1}
-.toast.toast-success .toast-icon{color:var(--success)}
-.toast.toast-warning .toast-icon{color:var(--warning)}
-.toast.toast-error .toast-icon{color:var(--danger)}
-.toast.toast-info .toast-icon{color:var(--primary)}
 .chart-container{position:relative;height:260px;width:100%}
 .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .lifecycle-bar{display:flex;align-items:center;gap:0;height:8px;border-radius:4px;overflow:hidden;background:var(--gray-200);position:relative;min-width:100px;margin:3px 0}
@@ -224,8 +195,7 @@ textarea.form-control{resize:vertical;min-height:60px}
 </style>
 </head>
 <body><!-- LOGIN -->
-  <div class="toast-container" id="toastContainer"></div>
-  <div class="login-overlay" id="loginOverlay">
+<div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <h1><span id="loginLogo">HIMS</span></h1>
     <p class="sub" id="loginSub">Hospital Inventory Management System <br><span style="font-size:11px;color:var(--gray-500)">NABH &amp; GCI Compliant</span></p>
@@ -233,7 +203,11 @@ textarea.form-control{resize:vertical;min-height:60px}
     <div class="form-group"><label id="lblPassword">Password</label><input class="form-control" id="loginPass" type="password" placeholder="Enter password"></div>
     <button class="btn btn-primary" onclick="login()" id="btnSignIn">Sign In</button>
     <div class="login-error" id="loginError">Invalid username or password.</div>
-
+    <div style="margin-top:16px;font-size:11px;color:var(--gray-500);text-align:left;padding:8px;background:var(--gray-100);border-radius:8px">
+      <strong id="lblDemo">Demo Credentials:</strong><br>
+      admin / admin123 <span style="color:var(--success)">(Full Access)</span><br>
+      store / store123 <span style="color:var(--warning)">(Storekeeper)</span>
+    </div>
     <div style="margin-top:10px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--gray-500)">
       <label id="lblLanguage">Language:</label>
       <select class="lang-select" id="loginLang" onchange="setLanguage(this.value)">
@@ -273,16 +247,6 @@ textarea.form-control{resize:vertical;min-height:60px}
     <div class="nav-divider"></div>
     <div class="nav-item" data-page="admins"><span class="icon">&#128101;</span> Admin Users</div>
     <div class="nav-item" data-page="settings"><span class="icon">&#9881;</span> Settings</div>
-    <div class="sidebar-legend" id="colorLegend" onclick="this.classList.toggle('open')">
-      <div class="legend-title">&#9632; Color Guide</div>
-      <div class="legend-body">
-        <div class="legend-item"><span class="legend-dot green"></span> OK Stock &middot; Active &middot; Approved</div>
-        <div class="legend-item"><span class="legend-dot yellow"></span> Low Stock &middot; Pending</div>
-        <div class="legend-item"><span class="legend-dot orange"></span> Warranty Ending &middot; Warning</div>
-        <div class="legend-item"><span class="legend-dot red"></span> Out of Stock &middot; Expired &middot; Rejected</div>
-        <div class="legend-item"><span class="legend-dot blue"></span> Info &middot; NABH Compliance</div>
-      </div>
-    </div>
     <div class="nav-item logout" data-page="logout"><span class="icon">&#8592;</span> Logout</div>
   </nav>
 </div>
@@ -310,7 +274,6 @@ textarea.form-control{resize:vertical;min-height:60px}
         <div class="compliance-flag"><span class="check">&#10003;</span> Vendor Management</div>
         <div class="compliance-flag"><span class="check">&#10003;</span> Audit Trail</div>
       </div>
-      <div class="status-legend no-print"><span><span class="sl-dot sl-green"></span> OK Stock</span><span><span class="sl-dot sl-yellow"></span> Low Stock</span><span><span class="sl-dot sl-orange"></span> Warning</span><span><span class="sl-dot sl-red"></span> Out / Expired</span><span><span class="sl-dot sl-blue"></span> Info</span></div>
       <div class="stats-grid" id="dashStats"></div>
       <div id="dashContent"></div>
     </div>
@@ -384,8 +347,8 @@ textarea.form-control{resize:vertical;min-height:60px}
     <!-- ITEMS -->
     <div class="page" id="page-items">
       <div class="card">
-        <div class="card-header"><h2>Materials / Items</h2><div class="flex gap-8"><select class="form-control form-control-sm" id="itemDeptFilter" onchange="renderItems()" style="min-width:140px"><option value="">All Departments</option></select><select class="form-control form-control-sm" id="itemCatFilter" onchange="renderItems()" style="min-width:140px"><option value="">All Categories</option></select><div class="search-bar"><input type="text" class="form-control form-control-sm" id="itemSearch" placeholder="Search..." oninput="renderItems()"></div><button class="btn btn-primary btn-sm" onclick="showModal('item')">+ Add Material</button></div></div>
-        <div class="card-body"><div class="status-legend no-print"><span><span class="sl-dot sl-green"></span> Active</span><span><span class="sl-dot sl-orange"></span> Warranty Ending</span><span><span class="sl-dot sl-yellow"></span> Out of Warranty</span><span><span class="sl-dot sl-red"></span> Expired</span></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Department</th><th>Category</th><th>Unit</th><th>SKU/Barcode</th><th class="price-col">Price</th><th>Supplier</th><th>Storage</th><th>Purchase</th><th>Warranty</th><th>Expiry</th><th>Lifecycle</th><th>Actions</th></tr></thead><tbody id="itemsTable"></tbody></table></div></div>
+        <div class="card-header"><h2>Materials / Items</h2><div class="flex gap-8"><select class="form-control form-control-sm" id="itemDeptFilter" onchange="renderItems()" style="min-width:140px"><option value="">All Departments</option></select><div class="search-bar"><input type="text" class="form-control form-control-sm" id="itemSearch" placeholder="Search..." oninput="renderItems()"></div><button class="btn btn-primary btn-sm" onclick="showModal('item')">+ Add Material</button></div></div>
+        <div class="card-body"><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Department</th><th>Category</th><th>Unit</th><th>SKU/Barcode</th><th class="price-col">Price</th><th>Supplier</th><th>Storage</th><th>Purchase</th><th>Warranty</th><th>Expiry</th><th>Lifecycle</th><th>Actions</th></tr></thead><tbody id="itemsTable"></tbody></table></div></div>
       </div>
     </div>
 
@@ -421,20 +384,20 @@ textarea.form-control{resize:vertical;min-height:60px}
           <button class="btn btn-outline btn-sm" onclick="exportCSV()">Export CSV</button>
           <button class="btn btn-primary btn-sm" onclick="downloadStockReport()">&#8595; Download Report</button>
         </div></div>
-        <div class="card-body"><div class="status-legend no-print"><span><span class="sl-dot sl-green"></span> OK Stock</span><span><span class="sl-dot sl-yellow"></span> Low Stock</span><span><span class="sl-dot sl-red"></span> Out of Stock</span><span><span class="sl-dot sl-orange"></span> Warranty Ending</span><span><span class="sl-dot sl-red"></span> Expired</span></div><div class="table-wrapper"><table><thead><tr><th>Material</th><th>Category</th><th>Dept</th><th>Stock</th><th class="price-col">Unit Price</th><th class="price-col">Total Value</th><th>In Qty</th><th>Out Qty</th><th>Supplier</th><th>Batch/Lot</th><th>Condition</th><th>Purchase</th><th>Warranty</th><th>Expiry</th><th>Lifecycle</th><th>Status</th></tr></thead><tbody id="stockTable"></tbody></table></div></div>
+        <div class="card-body"><div class="table-wrapper"><table><thead><tr><th>Material</th><th>Category</th><th>Dept</th><th>Stock</th><th class="price-col">Unit Price</th><th class="price-col">Total Value</th><th>In Qty</th><th>Out Qty</th><th>Supplier</th><th>Batch/Lot</th><th>Condition</th><th>Purchase</th><th>Warranty</th><th>Expiry</th><th>Lifecycle</th><th>Status</th></tr></thead><tbody id="stockTable"></tbody></table></div></div>
       </div>
     </div>
 
     <!-- EXPIRY TRACKER -->
     <div class="page" id="page-expiry">
       <div class="stats-grid" id="expiryStats"></div>
-      <div class="card"><div class="card-header"><h2>Item Lifecycle Timeline</h2><div class="flex gap-8"><select class="form-control form-control-sm" id="expiryFilter" onchange="renderExpiry()"><option value="">All Status</option><option value="expired">Expired</option><option value="warranty-ending">Warranty Ending Soon</option><option value="out-of-warranty">Out of Warranty</option><option value="active">Active</option></select><select class="form-control form-control-sm" id="expiryDept" onchange="renderExpiry()"><option value="">All Departments</option></select></div></div><div class="card-body"><div class="status-legend no-print"><span><span class="sl-dot sl-green"></span> Active</span><span><span class="sl-dot sl-orange"></span> Warranty Ending</span><span><span class="sl-dot sl-yellow"></span> Out of Warranty</span><span><span class="sl-dot sl-red"></span> Expired</span></div><div id="expiryBody"></div></div></div>
+      <div class="card"><div class="card-header"><h2>Item Lifecycle Timeline</h2><div class="flex gap-8"><select class="form-control form-control-sm" id="expiryFilter" onchange="renderExpiry()"><option value="">All Status</option><option value="expired">Expired</option><option value="warranty-ending">Warranty Ending Soon</option><option value="out-of-warranty">Out of Warranty</option><option value="active">Active</option></select><select class="form-control form-control-sm" id="expiryDept" onchange="renderExpiry()"><option value="">All Departments</option></select></div></div><div class="card-body" id="expiryBody"></div></div>
     </div>
 
     <!-- FORECASTING -->
     <div class="page" id="page-forecast">
       <div class="stats-grid" id="forecastStats"></div>
-      <div class="card"><div class="card-header"><h2>Demand Forecast &amp; Reorder Recommendations</h2><div class="flex gap-8"><select class="form-control form-control-sm" id="forecastDept" onchange="renderForecast()"><option value="">All Departments</option></select><select class="form-control form-control-sm" id="forecastCat" onchange="renderForecast()"><option value="">All Categories</option></select><select class="form-control form-control-sm" id="forecastPriority" onchange="renderForecast()"><option value="">All Priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div></div><div class="card-body"><div class="status-legend no-print"><span><span class="sl-dot sl-green"></span> Low Priority</span><span><span class="sl-dot sl-yellow"></span> Medium</span><span><span class="sl-dot sl-orange"></span> High</span><span><span class="sl-dot sl-red"></span> Critical / Reorder Now</span></div><div id="forecastBody"></div></div></div>
+      <div class="card"><div class="card-header"><h2>Demand Forecast &amp; Reorder Recommendations</h2><div class="flex gap-8"><select class="form-control form-control-sm" id="forecastDept" onchange="renderForecast()"><option value="">All Departments</option></select><select class="form-control form-control-sm" id="forecastCat" onchange="renderForecast()"><option value="">All Categories</option></select><select class="form-control form-control-sm" id="forecastPriority" onchange="renderForecast()"><option value="">All Priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div></div><div class="card-body" id="forecastBody"></div></div>
     </div>
 
     <!-- SCANNER -->
@@ -467,7 +430,7 @@ textarea.form-control{resize:vertical;min-height:60px}
       </div>
       <div class="card">
         <div class="card-header"><h2>Requisitions / Demands</h2><div class="badge badge-stock" style="font-size:10px">Workflow: Employee &rarr; HOD &rarr; Admin &rarr; Storekeeper &rarr; Receive</div></div>
-        <div class="card-body"><div class="status-legend no-print"><span><span class="sl-dot sl-yellow"></span> Pending</span><span><span class="sl-dot sl-green"></span> Approved / Fulfilled</span><span><span class="sl-dot sl-red"></span> Rejected</span></div><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Requester</th><th>Department</th><th>Item</th><th>Qty</th><th>Purpose</th><th>HOD</th><th>Admin</th><th>Store</th><th>Status</th><th>Actions</th></tr></thead><tbody id="demandsTable"></tbody></table></div></div>
+        <div class="card-body"><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Requester</th><th>Department</th><th>Item</th><th>Qty</th><th>Purpose</th><th>HOD</th><th>Admin</th><th>Store</th><th>Status</th><th>Actions</th></tr></thead><tbody id="demandsTable"></tbody></table></div></div>
       </div>
     </div>
 
@@ -487,7 +450,7 @@ textarea.form-control{resize:vertical;min-height:60px}
       </div>
       <div class="card">
         <div class="card-header"><h2>Return / Replacement Requests</h2><div class="badge badge-stock" style="font-size:10px">Workflow: Employee &rarr; HOD &rarr; Admin &rarr; Storekeeper &rarr; Receive</div></div>
-        <div class="card-body"><div class="status-legend no-print"><span><span class="sl-dot sl-yellow"></span> Pending</span><span><span class="sl-dot sl-green"></span> Approved</span><span><span class="sl-dot sl-red"></span> Rejected</span></div><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Type</th><th>Requester</th><th>Department</th><th>Item</th><th>Qty</th><th>Reason</th><th>HOD</th><th>Admin</th><th>Store</th><th>Received</th><th>Status</th><th>Actions</th></tr></thead><tbody id="returnsTable"></tbody></table></div></div>
+        <div class="card-body"><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Type</th><th>Requester</th><th>Department</th><th>Item</th><th>Qty</th><th>Reason</th><th>HOD</th><th>Admin</th><th>Store</th><th>Received</th><th>Status</th><th>Actions</th></tr></thead><tbody id="returnsTable"></tbody></table></div></div>
       </div>
     </div>
 
@@ -505,22 +468,17 @@ textarea.form-control{resize:vertical;min-height:60px}
       </div>
       <div class="card">
         <div class="card-header"><h2>Purchase Orders</h2><button class="btn btn-outline btn-sm" onclick="orderReport()">&#8595; Order Report</button></div>
-        <div class="card-body"><div class="status-legend no-print"><span><span class="sl-dot sl-yellow"></span> Draft</span><span><span class="sl-dot sl-orange"></span> Sent</span><span><span class="sl-dot sl-green"></span> Approved / Received</span></div><div class="table-wrapper"><table><thead><tr><th>Order #</th><th>Date</th><th>Supplier</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div>
+        <div class="card-body"><div class="table-wrapper"><table><thead><tr><th>Order #</th><th>Date</th><th>Supplier</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div>
       </div>
     </div>
 
     <!-- REPORTS & KPI -->
     <div class="page" id="page-reports">
-      <div class="flex gap-8 mb-16 no-print" style="align-items:center">
-        <select class="form-control form-control-sm" id="reportDeptFilter" onchange="renderReports()" style="width:auto;min-width:180px">
-          <option value="">All Departments</option>
-        </select>
+      <div class="flex gap-8 mb-16 no-print">
         <button class="btn btn-primary" onclick="exportReportExcel()">&#8595; Download Excel</button>
-        <button class="btn btn-success" onclick="exportDeptWiseExcel()">&#8595; Dept Wise Inventory</button>
         <button class="btn btn-danger" onclick="exportReportPDF()">&#8595; Download PDF</button>
         <button class="btn btn-outline" onclick="window.print()">&#128424; Print Report</button>
       </div>
-      <div class="status-legend no-print" style="margin-bottom:12px"><span><span class="sl-dot sl-green"></span> OK Stock</span><span><span class="sl-dot sl-yellow"></span> Low Stock</span><span><span class="sl-dot sl-red"></span> Out / Expired</span></div>
       <div id="reportContent">
         <div class="report-section">
           <h3>Key Performance Indicators</h3>
@@ -561,7 +519,7 @@ textarea.form-control{resize:vertical;min-height:60px}
 
     <!-- HISTORY -->
     <div class="page" id="page-history">
-      <div class="card"><div class="card-header"><h2>Transaction History</h2><div class="flex gap-8"><select class="form-control form-control-sm" id="histType" onchange="renderHistory()"><option value="">All Types</option><option value="in">Incoming</option><option value="out">Outgoing</option></select><select class="form-control form-control-sm" id="histDept" onchange="renderHistory()"><option value="">All Departments</option></select><input type="date" class="form-control form-control-sm" id="histDateFrom" onchange="renderHistory()"><input type="date" class="form-control form-control-sm" id="histDateTo" onchange="renderHistory()"><button class="btn btn-outline btn-sm" onclick="clearDateFilter()">Clear</button></div></div><div class="card-body"><div class="status-legend no-print"><span><span class="sl-dot sl-green"></span> Material In</span><span><span class="sl-dot sl-red"></span> Material Out</span><span><span class="sl-dot sl-yellow"></span> QC Pending</span><span><span class="sl-dot sl-red"></span> QC Failed</span><span><span class="sl-dot sl-orange"></span> Quarantine</span></div><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Material</th><th>Dept</th><th>Type</th><th>Qty</th><th>Batch/Lot</th><th>QC</th><th>Condition</th><th>MRN</th><th class="price-col">Price</th><th class="price-col">Total</th><th>Supplier</th><th>By</th><th>Actions</th></tr></thead><tbody id="histTable"></tbody></table></div></div></div>
+      <div class="card"><div class="card-header"><h2>Transaction History</h2><div class="flex gap-8"><select class="form-control form-control-sm" id="histType" onchange="renderHistory()"><option value="">All Types</option><option value="in">Incoming</option><option value="out">Outgoing</option></select><select class="form-control form-control-sm" id="histDept" onchange="renderHistory()"><option value="">All Departments</option></select><input type="date" class="form-control form-control-sm" id="histDateFrom" onchange="renderHistory()"><input type="date" class="form-control form-control-sm" id="histDateTo" onchange="renderHistory()"><button class="btn btn-outline btn-sm" onclick="clearDateFilter()">Clear</button></div></div><div class="card-body"><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Material</th><th>Dept</th><th>Type</th><th>Qty</th><th>Batch/Lot</th><th>QC</th><th>Condition</th><th>MRN</th><th class="price-col">Price</th><th class="price-col">Total</th><th>Supplier</th><th>By</th><th>Actions</th></tr></thead><tbody id="histTable"></tbody></table></div></div></div>
     </div>
 
     <!-- ADMIN USERS -->
@@ -630,11 +588,6 @@ textarea.form-control{resize:vertical;min-height:60px}
 <div class="modal-overlay" id="demandModal">
   <div class="modal" style="max-width:550px"><div class="modal-header"><h3 id="demandModalTitle">Raise New Demand</h3><button class="modal-close" onclick="closeModalById('demandModal')">&times;</button></div><div class="modal-body"><div id="demandModalBody"></div></div><div class="modal-footer" id="demandModalFooter"></div></div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 // ============================================================
 // DATA LAYER
@@ -716,33 +669,6 @@ function loadData() {
   if (!data.demands) data.demands = [];
   if (!data.returns) data.returns = [];
   if (!data.orders) data.orders = [];
-  // migrate: add new categories and items if missing, ensure departmentId on items
-  const def=getDefaultData();
-  const existingCatIds=new Set(data.categories.map(c=>c.id));
-  def.categories.forEach(c=>{if(!existingCatIds.has(c.id))data.categories.push(c);});
-  const existingItemIds=new Set(data.items.map(i=>i.id));
-  def.items.forEach(i=>{if(!existingItemIds.has(i.id))data.items.push(i);});
-  // add departmentId to items that don't have one
-  data.items.forEach(i=>{if(i.departmentId===undefined)i.departmentId='';});
-  // auto-create initial stock entries for items with no transactions
-  const existingTxItems=new Set(data.transactions.map(t=>t.itemId));
-  let nextTx=data.transactions.length+1;
-  const batchNo='B2025-INIT';
-  data.items.forEach(item=>{
-    if(!existingTxItems.has(item.id)){
-      const deptId=item.departmentId||'';
-      data.transactions.push({
-        id:'t'+(nextTx++),
-        itemId:item.id, type:'in', qty:10, price:0,
-        date:new Date().toISOString().split('T')[0],
-        ref:'INIT', by:'Admin', to:'', supplier:'Local Vendor',
-        notes:'Initial stock', batchNo,
-        qualityCheck:'passed', condition:'normal',
-        mrn:'MRN-INIT', verifiedBy:'',
-        departmentId:deptId
-      });
-    }
-  });
   return data;
 }
 function getDefaultData() {
@@ -772,12 +698,6 @@ function getDefaultData() {
       { id:'c7', name:'Diagnostic Supplies' },{ id:'c8', name:'Cardiac Supplies' },
       { id:'c9', name:'Orthopedic Supplies' },{ id:'c10', name:'Pediatric & Maternity' },
       { id:'c11', name:'Ophthalmic & ENT' },{ id:'c12', name:'Hospital Consumables' },
-      { id:'c13', name:'Stationery' },{ id:'c14', name:'Cleaning Items' },
-      { id:'c15', name:'Crockery Items' },{ id:'c16', name:'Electrical Items' },
-      { id:'c17', name:'Cartridge/Toner' },
-      { id:'c18', name:'Medical & Surgical Consumables' },
-      { id:'c19', name:'Furniture' },{ id:'c20', name:'Medical Equipment' },
-      { id:'c21', name:'Linen' },{ id:'c22', name:'Miscellaneous' },
     ],
     items: [
       { id:'i1', name:'Disposable Gloves', categoryId:'c1', unit:'Box', sku:'ER-GLV-001', barcode:'8901012345001', minStock:10, purchaseDate:'2024-01-15', warrantyMonths:24, expiryDate:'2026-07-15', purchasePrice:455, supplier:'MedIndia Healthcare', storageCondition:'Normal' },
@@ -858,635 +778,6 @@ function getDefaultData() {
       { id:'i76', name:'Nebulizer Kit', categoryId:'c7', unit:'Set', sku:'PU-NEB-001', barcode:'8901012345076', minStock:5, purchaseDate:'2024-05-20', warrantyMonths:12, expiryDate:'2026-05-20', purchasePrice:450, supplier:'HealthEquip Solutions', storageCondition:'Normal' },
       { id:'i77', name:'Chest Tube Drain', categoryId:'c5', unit:'Pcs', sku:'PU-CTD-001', barcode:'8901012345077', minStock:5, purchaseDate:'2024-03-15', warrantyMonths:24, expiryDate:'2026-03-15', purchasePrice:380, supplier:'SurgiMart India', storageCondition:'Normal' },
       { id:'i78', name:'Inhaler Salbutamol', categoryId:'c2', unit:'Pcs', sku:'PU-INH-001', barcode:'8901012345078', minStock:10, purchaseDate:'2024-07-10', warrantyMonths:0, expiryDate:'2026-01-10', purchasePrice:95, supplier:'PharmaPlus Distributors', storageCondition:'Normal' },
-      // Stationery Items
-      { id:'i79', name:'A4 Color Paper', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i80', name:'A4 Size Brown Envelop Cloth', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i81', name:'A4 Size Photo Paper', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i82', name:'A4 Size White Paper', categoryId:'c13', unit:'Pack', minStock:10 },
-      { id:'i83', name:'A4 Sticker Paper', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i84', name:'All Pin', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i85', name:'Attendance Register', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i86', name:'Binder Clip', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i87', name:'Bond Paper', categoryId:'c13', unit:'Pack', minStock:10 },
-      { id:'i88', name:'Box File', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i89', name:'Button Folder', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i90', name:'Buzzer Bell', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i91', name:'Calculator', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i92', name:'Candle', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i93', name:'Carbon Paper', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i94', name:'Card Sheet', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i95', name:'Card Sheet for I-Cards', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i96', name:'Cash Book', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i97', name:'CD Marker Pen', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i98', name:'CD-R (Loose)', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i99', name:'CD-R (Pack)', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i100', name:'CD-RW', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i101', name:'Cell (AA)', categoryId:'c13', unit:'Pack', minStock:10 },
-      { id:'i102', name:'Cell (AAA)', categoryId:'c13', unit:'Pack', minStock:10 },
-      { id:'i103', name:'Cell Tape Dispenser', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i104', name:'Chart Paper', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i105', name:'Cloth A3 Size Envelops', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i106', name:'Cloth A4 Size Envelops', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i107', name:'Comb', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i108', name:'Dispatch Register', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i109', name:'Double Hole Punch', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i110', name:'Dry Cell 9V', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i111', name:'DVD-R (Loose)', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i112', name:'DVD-R (Pack)', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i113', name:'DVD-RW', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i114', name:'Electronic Call Bell', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i115', name:'Entry Register', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i116', name:'Eraser', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i117', name:'Fevi Gum', categoryId:'c13', unit:'Bottle', minStock:5 },
-      { id:'i118', name:'Fevi Quick', categoryId:'c13', unit:'Bottle', minStock:5 },
-      { id:'i119', name:'Fevi Stick', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i120', name:'Fevicol', categoryId:'c13', unit:'Bottle', minStock:5 },
-      { id:'i121', name:'File Board', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i122', name:'Flag Tri Color', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i123', name:'Gate Pass Book', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i124', name:'Green Sheet', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i125', name:'Gum Bottle', categoryId:'c13', unit:'Bottle', minStock:5 },
-      { id:'i126', name:'Heavy Duty Punching Machine', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i127', name:'Highlighter', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i128', name:'I Card Holder', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i129', name:'I Card Plastic Sheet', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i130', name:'Ink Pad', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i131', name:'Ink Pad (Red Colour)', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i132', name:'Institute Letter Head', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i133', name:'Knife Big', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i134', name:'Knife Small', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i135', name:'Legal Paper', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i136', name:'Lamination Sheet', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i137', name:'Lock', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i138', name:'Log Book', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i139', name:'MB Book', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i140', name:'Name Plate', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i141', name:'Normal Dot Pen', categoryId:'c13', unit:'Pcs', minStock:20 },
-      { id:'i142', name:'Note Pad', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i143', name:'Notice Board', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i144', name:'Notice Board Pin', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i145', name:'Numbering Machine', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i146', name:'Office File', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i147', name:'Paper Tray', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i148', name:'Paper Weight', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i149', name:'Pen (Butter Flow)', categoryId:'c13', unit:'Pcs', minStock:20 },
-      { id:'i150', name:'Pen Holder', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i151', name:'Pen Stand', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i152', name:'Pencil', categoryId:'c13', unit:'Pcs', minStock:20 },
-      { id:'i153', name:'Peon Book', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i154', name:'Permanent Marker', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i155', name:'Pilot Pen', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i156', name:'Pilot V5 Pen', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i157', name:'Plastic Folder', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i158', name:'Poker', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i159', name:'Register 240', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i160', name:'Register 320', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i161', name:'Rubber Band (Big)', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i162', name:'Rubber Band (Small)', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i163', name:'Safety Pin', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i164', name:'Scale', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i165', name:'Scissors', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i166', name:'Sealing Wax', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i167', name:'Sharpener', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i168', name:'Shorthand Diary', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i169', name:'Single Hole Punch', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i170', name:'Sketch Pen', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i171', name:'Small Non Window Envelops', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i172', name:'Small Window Envelops', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i173', name:'Stamp', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i174', name:'Stamp Pad Ink', categoryId:'c13', unit:'Bottle', minStock:3 },
-      { id:'i175', name:'Stapler (Big)', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i176', name:'Stapler (Small)', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i177', name:'Stapler Pin 10 No.', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i178', name:'Stapler Pin 23/17', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i179', name:'Stapler Pin 24/6', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i180', name:'Stapler Remover', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i181', name:'Stapler for 100 pages and above', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i182', name:'Sticky Pad Yellow', categoryId:'c13', unit:'Pack', minStock:10 },
-      { id:'i183', name:'Stock Register 200', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i184', name:'Stock Register 450', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i185', name:'Table Tray', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i186', name:'Tags (Green)', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i187', name:'Tags (White)', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i188', name:'Tape 1" Brown', categoryId:'c13', unit:'Roll', minStock:5 },
-      { id:'i189', name:'Tape 1" White', categoryId:'c13', unit:'Roll', minStock:5 },
-      { id:'i190', name:'Tape 3" Brown', categoryId:'c13', unit:'Roll', minStock:5 },
-      { id:'i191', name:'Tape 3" White', categoryId:'c13', unit:'Roll', minStock:5 },
-      { id:'i192', name:'Thread', categoryId:'c13', unit:'Roll', minStock:5 },
-      { id:'i193', name:'Tie Cutter', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i194', name:'Ties (3")', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i195', name:'Ties (5")', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i196', name:'Ties (6")', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i197', name:'Transparency Back Sheet', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i198', name:'Transparent Sheet', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i199', name:'U-Clip', categoryId:'c13', unit:'Pack', minStock:5 },
-      { id:'i200', name:'Voucher File', categoryId:'c13', unit:'Pcs', minStock:5 },
-      { id:'i201', name:'Water Damper', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i202', name:'White Board', categoryId:'c13', unit:'Pcs', minStock:2 },
-      { id:'i203', name:'White Board Duster', categoryId:'c13', unit:'Pcs', minStock:3 },
-      { id:'i204', name:'White Board Marker', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i205', name:'White Board Marker Ink', categoryId:'c13', unit:'Bottle', minStock:5 },
-      { id:'i206', name:'Whitener', categoryId:'c13', unit:'Bottle', minStock:5 },
-      { id:'i207', name:'Yellow Envelop A3 Size', categoryId:'c13', unit:'Pcs', minStock:10 },
-      { id:'i208', name:'Yellow Envelop A4 Size', categoryId:'c13', unit:'Pcs', minStock:10 },
-      // Cleaning Items
-      { id:'i209', name:'Brasso Polish', categoryId:'c14', unit:'Bottle', minStock:3 },
-      { id:'i210', name:'Colin', categoryId:'c14', unit:'Bottle', minStock:3 },
-      { id:'i211', name:'Doormat', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i212', name:'Dustbin (Big)', categoryId:'c14', unit:'Pcs', minStock:2 },
-      { id:'i213', name:'Dustbin (Small)', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i214', name:'Floor Wiper', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i215', name:'Flower Broom', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i216', name:'Hand Wash', categoryId:'c14', unit:'Bottle', minStock:5 },
-      { id:'i217', name:'Harpic', categoryId:'c14', unit:'Bottle', minStock:3 },
-      { id:'i218', name:'Hit', categoryId:'c14', unit:'Bottle', minStock:3 },
-      { id:'i219', name:'Kapoor Goli', categoryId:'c14', unit:'Pack', minStock:5 },
-      { id:'i220', name:'Mosquito Refill Machine', categoryId:'c14', unit:'Pcs', minStock:2 },
-      { id:'i221', name:'Mosquito Repellent Refill Liquid', categoryId:'c14', unit:'Bottle', minStock:5 },
-      { id:'i222', name:'Mug', categoryId:'c14', unit:'Pcs', minStock:5 },
-      { id:'i223', name:'Nip', categoryId:'c14', unit:'Bottle', minStock:3 },
-      { id:'i224', name:'Nirma', categoryId:'c14', unit:'Pack', minStock:5 },
-      { id:'i225', name:'Odonil', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i226', name:'Old Dhoti (Duster)', categoryId:'c14', unit:'Pcs', minStock:5 },
-      { id:'i227', name:'Phenayal', categoryId:'c14', unit:'Bottle', minStock:3 },
-      { id:'i228', name:'Pipe 1"', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i229', name:'Plastic Bucket', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i230', name:'Polythene Bags', categoryId:'c14', unit:'Pack', minStock:10 },
-      { id:'i231', name:'Poocha', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i232', name:'Room Freshner', categoryId:'c14', unit:'Bottle', minStock:3 },
-      { id:'i233', name:'Seek Broom', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i234', name:'Shampoo', categoryId:'c14', unit:'Bottle', minStock:5 },
-      { id:'i235', name:'Toilet Brush', categoryId:'c14', unit:'Pcs', minStock:3 },
-      { id:'i236', name:'Toilet Soap', categoryId:'c14', unit:'Pcs', minStock:10 },
-      // Crockery Items
-      { id:'i237', name:'Electric Kettle', categoryId:'c15', unit:'Pcs', minStock:1 },
-      { id:'i238', name:'Tea Coaster', categoryId:'c15', unit:'Pcs', minStock:5 },
-      { id:'i239', name:'Tea Cup with Saucer', categoryId:'c15', unit:'Set', minStock:5 },
-      { id:'i240', name:'Tea Flask', categoryId:'c15', unit:'Pcs', minStock:2 },
-      { id:'i241', name:'Tea Tray', categoryId:'c15', unit:'Pcs', minStock:2 },
-      { id:'i242', name:'Water Camper', categoryId:'c15', unit:'Pcs', minStock:2 },
-      { id:'i243', name:'Water Glass', categoryId:'c15', unit:'Pcs', minStock:10 },
-      { id:'i244', name:'Water Jug', categoryId:'c15', unit:'Pcs', minStock:3 },
-      // Electrical Items
-      { id:'i245', name:'Wall Fan', categoryId:'c16', unit:'Pcs', minStock:2 },
-      { id:'i246', name:'Ceiling Fan', categoryId:'c16', unit:'Pcs', minStock:2 },
-      { id:'i247', name:'Extension Board', categoryId:'c16', unit:'Pcs', minStock:3 },
-      { id:'i248', name:'Table Fan', categoryId:'c16', unit:'Pcs', minStock:2 },
-      // Cartridge/Toner Items
-      { id:'i249', name:'128 A Cyan', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i250', name:'128 A Magenta', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i251', name:'128 A Yellow', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i252', name:'12A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i253', name:'131A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i254', name:'18 Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i255', name:'18 Cyan', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i256', name:'18 Magenta', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i257', name:'18 Yellow', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i258', name:'22 Tri Color', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i259', name:'36A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i260', name:'42A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i261', name:'56 Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i262', name:'57 Tri Color', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i263', name:'678 Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i264', name:'678 Tri Color', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i265', name:'78A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i266', name:'80A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i267', name:'88A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i268', name:'920 XL Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i269', name:'920 XL Yellow', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i270', name:'920XL Cyan', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i271', name:'920XL Magenta', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i272', name:'940XL Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i273', name:'940XL Cyan', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i274', name:'940XL Magenta', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i275', name:'940XL Yellow', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i276', name:'950 Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i277', name:'951 Cyan', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i278', name:'951 Magenta', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i279', name:'951 Yellow', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i280', name:'955XL Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i281', name:'955XL Cyan', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i282', name:'955XL Magenta', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i283', name:'955XL Yellow', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i284', name:'9730 Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i285', name:'9731 Blue', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i286', name:'9732 Yellow', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i287', name:'9733 Red', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i288', name:'Canon FX9 Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i289', name:'079A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i290', name:'Canon iR adv 4235 Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i291', name:'Canon MF4820d', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i292', name:'HP 200 Color Cartridge (131) Yellow, Cyan, Magenta, Black', categoryId:'c17', unit:'Set', minStock:1 },
-      { id:'i293', name:'HP 55A Color', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i294', name:'HP 55A Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i295', name:'Konica Minolta Bizhub-210 Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i296', name:'Kyocera 3510i Toner', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i297', name:'Dye Film for ID Card Printer', categoryId:'c17', unit:'Roll', minStock:1 },
-      { id:'i298', name:'NPG-54 Toner for Canon 6275', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i299', name:'NPG-67 Toner Black', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i300', name:'NPG-67 Toner Cyan', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i301', name:'NPG-67 Toner Magenta', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i302', name:'NPG-67 Toner Yellow', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i303', name:'Ricoh MP 7502 Toner', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i304', name:'Samsung 340x and 216x Series', categoryId:'c17', unit:'Pcs', minStock:1 },
-      { id:'i305', name:'Toner Bizhub C353 Black, Cyan, Magenta, Yellow', categoryId:'c17', unit:'Set', minStock:1 },
-      { id:'i306', name:'Toner TK-479', categoryId:'c17', unit:'Pcs', minStock:1 },
-      // Medical & Surgical Consumables
-      { id:'i307', name:'Abdominal Sponges', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i308', name:'3 Way Extension', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i309', name:'ABG Syringe', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i310', name:'Alcohol Swab', categoryId:'c18', unit:'Pack', minStock:10 },
-      { id:'i311', name:'Ambu Bag (Adult & Paediatric)', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i312', name:'Anti Microbial Bed Sheets And Pillow Covers', categoryId:'c18', unit:'Set', minStock:5 },
-      { id:'i313', name:'Antifog Solution', categoryId:'c18', unit:'Bottle', minStock:3 },
-      { id:'i314', name:'Bed Pans SS', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i315', name:'Bone Wax', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i316', name:'Derma Bond', categoryId:'c18', unit:'Bottle', minStock:3 },
-      { id:'i317', name:'End Tidal CO2 Monitor (Portable)', categoryId:'c18', unit:'Pcs', minStock:1 },
-      { id:'i318', name:'Enema Cans SS', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i319', name:'Esophageal Bougies', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i320', name:'Feeding Cup With And Without Spouts', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i321', name:'Gum Elastic Bougie (Adult & Paediatric)', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i322', name:'IV Flow Meter (Dual Flow)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i323', name:'Liquid Chlorhexidine Based Hand Wash', categoryId:'c18', unit:'Bottle', minStock:5 },
-      { id:'i324', name:'LMA (Adult & Paediatric)', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i325', name:'Methylene Blue Dye', categoryId:'c18', unit:'Bottle', minStock:2 },
-      { id:'i326', name:'Micro Chield Hand Wash', categoryId:'c18', unit:'Bottle', minStock:5 },
-      { id:'i327', name:'Screw Caped Centrifuge Tube', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i328', name:'Shoulder U Drape - Disposable Sterile', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i329', name:'Signaloc Autoclave Tape', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i330', name:'Skin Grafting Blades', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i331', name:'Soft Bandage (Assorted)', categoryId:'c18', unit:'Roll', minStock:10 },
-      { id:'i332', name:'Soft Vinyl Tubing', categoryId:'c18', unit:'Roll', minStock:3 },
-      { id:'i333', name:'Tegaderm Dressing', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i334', name:'Tracheostomy Set', categoryId:'c18', unit:'Set', minStock:2 },
-      { id:'i335', name:'Knee O Drape', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i336', name:'Laryngoscope With Different Blades', categoryId:'c18', unit:'Set', minStock:2 },
-      { id:'i337', name:'Latex Tube', categoryId:'c18', unit:'Roll', minStock:3 },
-      { id:'i338', name:'Ligature Material', categoryId:'c18', unit:'Pack', minStock:5 },
-      { id:'i339', name:'Line Tape', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i340', name:'Autoclave Indicator Tape', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i341', name:'Autoclave Labels', categoryId:'c18', unit:'Pack', minStock:5 },
-      { id:'i342', name:'Guedel Airways', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i343', name:'Pint Measure', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i344', name:'Pleural Biopsy Needle', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i345', name:'Poison Cupboard', categoryId:'c18', unit:'Pcs', minStock:1 },
-      { id:'i346', name:'Polymask (Different Sizes)', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i347', name:'Polythene Nasal Feeding Tube (Infant & Child)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i348', name:'Polythene Surgical Tubing', categoryId:'c18', unit:'Roll', minStock:3 },
-      { id:'i349', name:'Guedel Airways (Paediatric)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i350', name:'Haemostatic Agents', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i351', name:'Glucometer With Gluco Sticks', categoryId:'c18', unit:'Set', minStock:2 },
-      { id:'i352', name:'Hand Brushes/Nail Brushes, Nail Cutter', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i353', name:'I.V. Cannula/Vasofix Safety', categoryId:'c18', unit:'Pcs', minStock:20 },
-      { id:'i354', name:'Hip U Drape', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i355', name:'Ayres Spatulas And Endocervical Brush Disposable', categoryId:'c18', unit:'Pack', minStock:5 },
-      { id:'i356', name:'Back Rest', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i357', name:'Back To Back Connector Disposable', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i358', name:'Bains Circuit With Extension', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i359', name:'Band Aid', categoryId:'c18', unit:'Pack', minStock:10 },
-      { id:'i360', name:'Battery Cells (All Sizes) Including Button Battery Cells', categoryId:'c18', unit:'Pack', minStock:10 },
-      { id:'i361', name:'Kidney Tray (SS)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i362', name:'BCG Syringe', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i363', name:'Bed Side Chamber Pots', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i364', name:'Bed Side Lockers', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i365', name:'Beds With Beddings For Duty Rooms', categoryId:'c18', unit:'Set', minStock:2 },
-      { id:'i366', name:'Benches Or Perforated Chair', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i367', name:'Biological Indicator', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i368', name:'Bladder Irrigation Syringe', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i369', name:'Towel Rack/Stand', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i370', name:'Tube Stockinettes', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i371', name:'TUR Set With Y Shaped Connectors', categoryId:'c18', unit:'Set', minStock:2 },
-      { id:'i372', name:'TVR Loupes All Varieties', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i373', name:'Ultra Sound Jelly', categoryId:'c18', unit:'Bottle', minStock:5 },
-      { id:'i374', name:'Umbilical Catheter (Disposable Cannula)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i375', name:'Umbilical Tape', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i376', name:'Under Water Seal Chest Drainage', categoryId:'c18', unit:'Set', minStock:3 },
-      { id:'i377', name:'Ureteric Catheters', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i378', name:'Urethral Catheters Check', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i379', name:'Urinary Bag Non-Reflux Type (Sterile)', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i380', name:'Uristics', categoryId:'c18', unit:'Pack', minStock:5 },
-      { id:'i381', name:'Urometer Disposable', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i382', name:'Vacuum Suction Wound Drainage System Complete (All Sizes)', categoryId:'c18', unit:'Set', minStock:3 },
-      { id:'i383', name:'Ventilatory Circuit', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i384', name:'Blades', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i385', name:'Blankets', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i386', name:'Blood Bags', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i387', name:'Blood Transfusion Set', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i388', name:'Bone Marrow Biopsy Needles', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i389', name:'Book Racks', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i390', name:'Bougies (All Sizes)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i391', name:'Bowdicks Test Kits', categoryId:'c18', unit:'Kit', minStock:3 },
-      { id:'i392', name:'Bubble Tubes (Marking At 1m Distance)', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i393', name:'C PAP Tubings', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i394', name:'Cautery Pencil', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i395', name:'Central Venous Catheters Complete Sets', categoryId:'c18', unit:'Set', minStock:3 },
-      { id:'i396', name:'Chemical Indicator Pellets', categoryId:'c18', unit:'Pack', minStock:5 },
-      { id:'i397', name:'Chemical Indicator Tape', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i398', name:'Chest Drainage Tube (All FG Sizes)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i399', name:'Cidex/Other Instrument Disinfectant Systems', categoryId:'c18', unit:'Set', minStock:2 },
-      { id:'i400', name:'Cleaning Agents', categoryId:'c18', unit:'Bottle', minStock:5 },
-      { id:'i401', name:'Condom Catheter (Siliconized)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i402', name:'Corrugated Drainage Sheet', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i403', name:'Crystalloid Infusion Set With Metallic Needles', categoryId:'c18', unit:'Set', minStock:10 },
-      { id:'i404', name:'Cup Goggles For Cataract Surgery', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i405', name:'CVP Catheters', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i406', name:'Desmafilm Sterile Dressing Film (All Sizes)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i407', name:'Detergents (Bars & Powder)', categoryId:'c18', unit:'Pack', minStock:5 },
-      { id:'i408', name:'Disinfectants', categoryId:'c18', unit:'Bottle', minStock:5 },
-      { id:'i409', name:'Disposable ABG Syringes With Silicon', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i410', name:'Disposable Colostomy Bag & Kit', categoryId:'c18', unit:'Set', minStock:3 },
-      { id:'i411', name:'Disposable Electrodes', categoryId:'c18', unit:'Pack', minStock:10 },
-      { id:'i412', name:'Disposable Eye Drapes With Side Pocket', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i413', name:'Disposable Eye Pad', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i414', name:'Disposable Flexo Metallic Endotracheal Tube', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i415', name:'Disposable Leurlock Syringes', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i416', name:'Disposable Sterile Suction Catheter', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i417', name:'Disposable Surgical Drapes', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i418', name:'Double Lumen Silicone TPN Catheters', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i419', name:'M.H. Syringe', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i420', name:'Medicine Glass/Disposable Glass', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i421', name:'Medicine Trolley/Crash Cart', categoryId:'c18', unit:'Pcs', minStock:1 },
-      { id:'i422', name:'Merocele Packs With String With Tube', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i423', name:'Merocele Packs With String Without Tube', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i424', name:'Micro Drip Set', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i425', name:'Micro Pipette Tips', categoryId:'c18', unit:'Pack', minStock:5 },
-      { id:'i426', name:'Polythene Bag (As Per BMW Guidelines)', categoryId:'c18', unit:'Pack', minStock:10 },
-      { id:'i427', name:'Specimen Bottles/Vaccutainers', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i428', name:'Spinal Needles All Sizes', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i429', name:'SS Bowl (Assorted)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i430', name:'Starch Bandage', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i431', name:'Steam Inhalers', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i432', name:'Stethoscope Adult And Paediatric', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i433', name:'Micropore', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i434', name:'Mini Vac Set', categoryId:'c18', unit:'Set', minStock:3 },
-      { id:'i435', name:'Rebreathing Bag All Sizes', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i436', name:'Multicath Double Lumen', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i437', name:'Nasal Oxygen Catheter', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i438', name:'Nasogastric Tubes', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i439', name:'Nebulizers', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i440', name:'Nephrostomy Catheter', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i441', name:'Suprapubic Catheter Non-Irritant', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i442', name:'Infant Bunet 1/2 Set', categoryId:'c18', unit:'Set', minStock:3 },
-      { id:'i443', name:'Orthopedics Split Sheets (Adhesive In 3 Areas)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i444', name:'Oxygen Masks (Assorted)', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i445', name:'Oxygen Masks Ventimask With Connecting Tube', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i446', name:'Paediatric IV Cannula 22/24/26', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i447', name:'Infant Feeding Tube', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i448', name:'Surgical Blades', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i449', name:'Surgical Clipper', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i450', name:'Toomey Syringe', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i451', name:'Surgical Pad', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i452', name:'Surgical Spears', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i453', name:'Syringe Buster', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i454', name:'Syringes (Assorted)', categoryId:'c18', unit:'Pcs', minStock:20 },
-      { id:'i455', name:'Syringes (Disposable-Assorted)', categoryId:'c18', unit:'Pcs', minStock:20 },
-      { id:'i456', name:'T Piece Connection', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i457', name:'Intracath/IV Cannula', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i458', name:'IV Sets', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i459', name:'Jars With Covers', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i460', name:'Rubber Air Cushion', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i461', name:'Tracheostomy Tubes', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i462', name:'Transfer Bags', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i463', name:'Rubber Aprons/Plastic Aprons', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i464', name:'Rubber Catheters (All Types)', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i465', name:'Rubber Hand Gloves', categoryId:'c18', unit:'Pair', minStock:20 },
-      { id:'i466', name:'Rubber Rectal Tube Funnel End', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i467', name:'Rubber Tourniquet', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i468', name:'Rubber/PVC Tubing', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i469', name:'Ryle Tube', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i470', name:'Scalp Vein Sets (Assorted)', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i471', name:'Double J Ureteric Stent', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i472', name:'Dressing Trolley', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i473', name:'ECG Papers', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i474', name:'Ellicks Evacuator', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i475', name:'Emergency Cricothyroid Puncture Set', categoryId:'c18', unit:'Set', minStock:2 },
-      { id:'i476', name:'Pediatric Infusion Set (Measured Volume Set)', categoryId:'c18', unit:'Set', minStock:5 },
-      { id:'i477', name:'Peritoneal Dialysis Catheters Complete Set', categoryId:'c18', unit:'Set', minStock:3 },
-      { id:'i478', name:'Endotracheal Cuff Pressure Monitor', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i479', name:'Endotracheal Tubes (All Types)', categoryId:'c18', unit:'Pcs', minStock:10 },
-      { id:'i480', name:'Epidural Catheters', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i481', name:'Graduated Drainage Collecting Glass Container', categoryId:'c18', unit:'Pcs', minStock:3 },
-      { id:'i482', name:'Epidural Needles', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i483', name:'Examination Lamp', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i484', name:'Ultrasound Thermal Paper', categoryId:'c18', unit:'Roll', minStock:5 },
-      { id:'i485', name:'Face Mask With Metal Clips', categoryId:'c18', unit:'Pcs', minStock:20 },
-      { id:'i486', name:'Face Masks (Single/Multi Layered/N-95)', categoryId:'c18', unit:'Pcs', minStock:20 },
-      { id:'i487', name:'Fibreoptic Laryngoscope', categoryId:'c18', unit:'Pcs', minStock:2 },
-      { id:'i488', name:'Flatus Tube', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i489', name:'Glass Connector For Tubing (Straight/T/Y)', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i490', name:'Drapes For New Born', categoryId:'c18', unit:'Pcs', minStock:5 },
-      { id:'i491', name:'Diapers (Adult And Paediatric)', categoryId:'c18', unit:'Pack', minStock:10 },
-      { id:'i492', name:'Glass Slides', categoryId:'c18', unit:'Pack', minStock:10 },
-      { id:'i493', name:'HIV Protection Kits', categoryId:'c18', unit:'Kit', minStock:5 },
-      { id:'i494', name:'Gloves', categoryId:'c18', unit:'Pair', minStock:20 },
-      { id:'i495', name:'Pigtail Catheter 16F For Abscess Drainage', categoryId:'c18', unit:'Pcs', minStock:3 },
-      // Furniture
-      { id:'i496', name:'Folding Beds', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i497', name:'Foot Rest For Officers', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i498', name:'Air Mattress', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i499', name:'Examination Table', categoryId:'c19', unit:'Pcs', minStock:1 },
-      { id:'i500', name:'File Cabinets', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i501', name:'Compartment Cupboard', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i502', name:'Computers Cabinet And Table', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i503', name:'Chair Revolving Executive', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i504', name:'Counter Chair', categoryId:'c19', unit:'Pcs', minStock:3 },
-      { id:'i505', name:'Chairs - Visitors', categoryId:'c19', unit:'Pcs', minStock:5 },
-      { id:'i506', name:'Chairs With & Without Arms', categoryId:'c19', unit:'Pcs', minStock:5 },
-      { id:'i507', name:'Cabinet For Instruments', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i508', name:'Grossing Tables For Lab', categoryId:'c19', unit:'Pcs', minStock:1 },
-      { id:'i509', name:'Hydraulic Chairs', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i510', name:'Incentive Spirometer', categoryId:'c19', unit:'Pcs', minStock:3 },
-      { id:'i511', name:'Kangaroo Mother Chair', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i512', name:'Lockers', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i513', name:'Nurses Station Counter/Desk', categoryId:'c19', unit:'Pcs', minStock:1 },
-      { id:'i514', name:'Office Equipments', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i515', name:'Office Tables', categoryId:'c19', unit:'Pcs', minStock:3 },
-      { id:'i516', name:'Operating Platform For Surgeon', categoryId:'c19', unit:'Pcs', minStock:1 },
-      { id:'i517', name:'Racks', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i518', name:'Reception/Registration Desk/Counter', categoryId:'c19', unit:'Pcs', minStock:1 },
-      { id:'i519', name:'Reclining Chairs', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i520', name:'Screen Stand', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i521', name:'Screen Stands With Curtains', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i522', name:'Special Beds (Railing, Ortho, ICU, ICCU)', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i523', name:'Steel Racks', categoryId:'c19', unit:'Pcs', minStock:3 },
-      { id:'i524', name:'Stool (Plain/Wooden/SS/Revolving)', categoryId:'c19', unit:'Pcs', minStock:5 },
-      { id:'i525', name:'Storage Racks', categoryId:'c19', unit:'Pcs', minStock:3 },
-      { id:'i526', name:'Storage Vials With Caps', categoryId:'c19', unit:'Pcs', minStock:5 },
-      { id:'i527', name:'Stretcher With Wheels', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i528', name:'Table - All Types', categoryId:'c19', unit:'Pcs', minStock:3 },
-      { id:'i529', name:'Table Top Inclination 45 (Cervical)', categoryId:'c19', unit:'Pcs', minStock:1 },
-      { id:'i530', name:'Water Mattress', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i531', name:'Water Sealed Wound Drainage System (Sterile)', categoryId:'c19', unit:'Set', minStock:3 },
-      { id:'i532', name:'Weighing Machine Digital', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i533', name:'Wheel Chair', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i534', name:'Wooden Spatula', categoryId:'c19', unit:'Pcs', minStock:10 },
-      { id:'i535', name:'Work Table With MICA Sheets', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i536', name:'X-Ray View Box Big Size-LED', categoryId:'c19', unit:'Pcs', minStock:1 },
-      { id:'i537', name:'Yankauer Suction Tube', categoryId:'c19', unit:'Pcs', minStock:5 },
-      { id:'i538', name:'Almirah With Glass Doors', categoryId:'c19', unit:'Pcs', minStock:2 },
-      { id:'i539', name:'Anaesthetic Chair - Hydraulic Type', categoryId:'c19', unit:'Pcs', minStock:1 },
-      { id:'i540', name:'Table-All Types', categoryId:'c19', unit:'Pcs', minStock:3 },
-      // Medical Equipment
-      { id:'i541', name:'Aspiration Needle', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i542', name:'Autoclaves', categoryId:'c20', unit:'Pcs', minStock:1 },
-      { id:'i543', name:'Multi Para Monitor', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i544', name:'Basic Stand', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i545', name:'Nebulizers', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i546', name:'Basin SS (All Sizes)', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i547', name:'Bed Rolls - Disposable', categoryId:'c20', unit:'Pack', minStock:10 },
-      { id:'i548', name:'DVT Pump', categoryId:'c20', unit:'Pcs', minStock:1 },
-      { id:'i549', name:'Blades (Assorted)', categoryId:'c20', unit:'Pcs', minStock:10 },
-      { id:'i550', name:'BP Apparatus With & Without Stand', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i551', name:'BP Handles', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i552', name:'Buckets SS With & Without Cover', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i553', name:'Central Gas Pipeline', categoryId:'c20', unit:'Set', minStock:1 },
-      { id:'i554', name:'Cheatle Forceps', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i555', name:'Clamp - All Types', categoryId:'c20', unit:'Pcs', minStock:10 },
-      { id:'i556', name:'Computers With Printers', categoryId:'c20', unit:'Set', minStock:2 },
-      { id:'i557', name:'Cotton Holder', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i558', name:'Digital Infrared Thermometer (Non Contact)', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i559', name:'Dirty Linen Bags Stand', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i560', name:'Dressing/Cutting Scissors', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i561', name:'Drums For Sterilized Dressing', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i562', name:'Fire Alarm Equipments', categoryId:'c20', unit:'Set', minStock:1 },
-      { id:'i563', name:'Floor Scrubbing Machine', categoryId:'c20', unit:'Pcs', minStock:1 },
-      { id:'i564', name:'Folding Portable Light/Shadow Less Light', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i565', name:'Forceps Assorted', categoryId:'c20', unit:'Pcs', minStock:10 },
-      { id:'i566', name:'Height Measuring Stand', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i567', name:'Hot And Cold Water Dispenser', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i568', name:'I.V. Stand', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i569', name:'Knee Hammer', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i570', name:'Liver Biopsy Needle (Adult & Child)', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i571', name:'Lubricant Silicone Oil & Spray', categoryId:'c20', unit:'Bottle', minStock:3 },
-      { id:'i572', name:'Lumbar Puncture Needles', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i573', name:'Mayo Scissors', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i574', name:'Metal Catheter (Female)', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i575', name:'Micro-Hand Drill', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i576', name:'Minor Surgery Instruments', categoryId:'c20', unit:'Set', minStock:2 },
-      { id:'i577', name:'Needle Destroyers', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i578', name:'Needle Holder', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i579', name:'Needle Hypodermic - All Sizes', categoryId:'c20', unit:'Pcs', minStock:20 },
-      { id:'i580', name:'Office Equipments', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i581', name:'Oxygen Cylinder With Trolley And Flow Meter', categoryId:'c20', unit:'Set', minStock:2 },
-      { id:'i582', name:'Oxygen Hoods', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i583', name:'Rectangular Trays SS (Assorted)', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i584', name:'Scissors (Assorted)', categoryId:'c20', unit:'Pcs', minStock:10 },
-      { id:'i585', name:'Screw Clamps', categoryId:'c20', unit:'Pcs', minStock:10 },
-      { id:'i586', name:'Scrub Station', categoryId:'c20', unit:'Pcs', minStock:1 },
-      { id:'i587', name:'Speculum (Assorted)', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i588', name:'Spinal Needle', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i589', name:'Sponge Holder', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i590', name:'Sterilizer (Electric)', categoryId:'c20', unit:'Pcs', minStock:1 },
-      { id:'i591', name:'Sternal Puncture Needle', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i592', name:'Stethoscope', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i593', name:'Stop Watch', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i594', name:'Suction Machine (Electric/Foot/Low Pressure)', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i595', name:'Tailor Scissors', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i596', name:'Thermal Cautery', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i597', name:'Thermometers (Oral & Rectal, Digital, IR)', categoryId:'c20', unit:'Pcs', minStock:5 },
-      { id:'i598', name:'Three Way Stop Cock', categoryId:'c20', unit:'Pcs', minStock:10 },
-      { id:'i599', name:'Tongue Depressors', categoryId:'c20', unit:'Pcs', minStock:20 },
-      { id:'i600', name:'Tuning Fork', categoryId:'c20', unit:'Pcs', minStock:3 },
-      { id:'i601', name:'UPS', categoryId:'c20', unit:'Pcs', minStock:2 },
-      { id:'i602', name:'Urinals SS, Plastic, Disposable', categoryId:'c20', unit:'Pcs', minStock:10 },
-      { id:'i603', name:'Urine Testing Set With Holder Stand', categoryId:'c20', unit:'Set', minStock:2 },
-      // Linen
-      { id:'i604', name:'Abdominal Sheets', categoryId:'c21', unit:'Pcs', minStock:5 },
-      { id:'i605', name:'Blankets', categoryId:'c21', unit:'Pcs', minStock:5 },
-      { id:'i606', name:'Non Inflammable Curtains', categoryId:'c21', unit:'Set', minStock:3 },
-      { id:'i607', name:'Bed Sheets - Vibgyor', categoryId:'c21', unit:'Pcs', minStock:10 },
-      { id:'i608', name:'Curtains, Fire Retardant Curtains', categoryId:'c21', unit:'Set', minStock:3 },
-      { id:'i609', name:'Doctors Coats (Cotton & Terrycot)', categoryId:'c21', unit:'Pcs', minStock:5 },
-      { id:'i610', name:'Draw Sheets', categoryId:'c21', unit:'Pcs', minStock:5 },
-      { id:'i611', name:'Aprons', categoryId:'c21', unit:'Pcs', minStock:10 },
-      { id:'i612', name:'Operation Theatre Linen', categoryId:'c21', unit:'Set', minStock:5 },
-      { id:'i613', name:'Gynae Sheets', categoryId:'c21', unit:'Pcs', minStock:5 },
-      { id:'i614', name:'Mackintosh', categoryId:'c21', unit:'Pcs', minStock:3 },
-      { id:'i615', name:'Mattresses (Assorted, Air Mattress)', categoryId:'c21', unit:'Pcs', minStock:3 },
-      // Miscellaneous
-      { id:'i616', name:'Mortuary Sheets', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i617', name:'Mosquito Repellant Machine & Refill', categoryId:'c22', unit:'Set', minStock:3 },
-      { id:'i618', name:'Mayur Jug', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i619', name:'Microwave', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i620', name:'Tray For Patients Meal', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i621', name:'Mugs', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i622', name:'Electric Insect Killer', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i623', name:'Emergency Light/Solar Lamp', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i624', name:'Insecticide Sprays', categoryId:'c22', unit:'Bottle', minStock:3 },
-      { id:'i625', name:'Refrigerator (Size As Per Requirement)', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i626', name:'Hand Held Racquet (Insect Killer)', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i627', name:'Jugs', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i628', name:'White Board With Writing Pens', categoryId:'c22', unit:'Set', minStock:2 },
-      { id:'i629', name:'Kettles', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i630', name:'Laser Pointer With Slide Changer', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i631', name:'LED Head Lamps', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i632', name:'LED TV With Multimedia Facility', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i633', name:'Hot Water Bottles', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i634', name:'Inverter/Generator Power Backup', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i635', name:'Luggage Trolley', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i636', name:'Dust Bins (As Per BMW Guidelines)', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i637', name:'Fly Swatters/Fly Racquet', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i638', name:'Food Warmer', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i639', name:'Funnel', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i640', name:'Garbage Trolley', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i641', name:'Geysers', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i642', name:'Glass Bottle For Storage Of MLC Sample', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i643', name:'Air Conditioners Window/Split', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i644', name:'Multimedia Projector', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i645', name:'Name Boards Of Hospitals/Units/Dispensaries', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i646', name:'Name Plates', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i647', name:'Desert Coolers', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i648', name:'Water Cooler', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i649', name:'Brooms', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i650', name:'Brushes (Floor & Wall)', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i651', name:'Case Sheet Holders', categoryId:'c22', unit:'Pcs', minStock:10 },
-      { id:'i652', name:'CCTV Camera Systems', categoryId:'c22', unit:'Set', minStock:1 },
-      { id:'i653', name:'Cells Torch (All Sizes)', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i654', name:'Charter Of Directions For Patients', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i655', name:'Notice Board', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i656', name:'Pest Control Device', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i657', name:'Notice Boards Indicating Facilities Available', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i658', name:'Notice Boards With Charter Of Directions', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i659', name:'Oil Radiator Heater', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i660', name:'RO Water System (Commercial)', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i661', name:'Fumigation Machine', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i662', name:'Audio Visual Display Equipments', categoryId:'c22', unit:'Set', minStock:1 },
-      { id:'i663', name:'Fumigation Solution', categoryId:'c22', unit:'Bottle', minStock:3 },
-      { id:'i664', name:'Bar Code Machine', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i665', name:'Patients Coat/Jacket', categoryId:'c22', unit:'Pcs', minStock:10 },
-      { id:'i666', name:'Patients Gowns', categoryId:'c22', unit:'Pcs', minStock:10 },
-      { id:'i667', name:'Pillow Covers Vibgyor', categoryId:'c22', unit:'Pcs', minStock:10 },
-      { id:'i668', name:'Pillows Polyfill', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i669', name:'Portable SPO2 Monitor', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i670', name:'Radio Opaque Sponge', categoryId:'c22', unit:'Pcs', minStock:10 },
-      { id:'i671', name:'Ripple Air Cushion', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i672', name:'Room Heater/Heat Convector', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i673', name:'Rubber Icecap', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i674', name:'Telephones With WiFi', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i675', name:'Shoe Covers Disposable And Cloth', categoryId:'c22', unit:'Pcs', minStock:20 },
-      { id:'i676', name:'Slippers/Washable Footwear', categoryId:'c22', unit:'Pair', minStock:10 },
-      { id:'i677', name:'Soap Liquid', categoryId:'c22', unit:'Bottle', minStock:5 },
-      { id:'i678', name:'Public Address System Equipments', categoryId:'c22', unit:'Set', minStock:1 },
-      { id:'i679', name:'Soaps And Soap Dishes', categoryId:'c22', unit:'Set', minStock:10 },
-      { id:'i680', name:'Spinal Sheets', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i681', name:'Spirit', categoryId:'c22', unit:'Bottle', minStock:5 },
-      { id:'i682', name:'Spirit Lamp', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i683', name:'STD/PCO Facility/Photocopier', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i684', name:'Steri Strips', categoryId:'c22', unit:'Pack', minStock:5 },
-      { id:'i685', name:'Biometric Attendance System', categoryId:'c22', unit:'Pcs', minStock:1 },
-      { id:'i686', name:'Sterilium Liquid', categoryId:'c22', unit:'Bottle', minStock:5 },
-      { id:'i687', name:'Surgical Gown For Doctors & Paramedical Staff', categoryId:'c22', unit:'Pcs', minStock:10 },
-      { id:'i688', name:'Table Glass', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i689', name:'Tape Measure', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i690', name:'Temperature Chart Holder', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i691', name:'Torches', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i692', name:'Towels', categoryId:'c22', unit:'Pcs', minStock:10 },
-      { id:'i693', name:'Tumblers', categoryId:'c22', unit:'Pcs', minStock:10 },
-      { id:'i694', name:'Vacuum Cleaner', categoryId:'c22', unit:'Pcs', minStock:2 },
-      { id:'i695', name:'Wall Clocks', categoryId:'c22', unit:'Pcs', minStock:3 },
-      { id:'i696', name:'Waste Paper Basket', categoryId:'c22', unit:'Pcs', minStock:5 },
-      { id:'i697', name:'Water Sealed Wound Drainage System (Sterile)', categoryId:'c22', unit:'Set', minStock:3 },
     ],
     transactions: [
       { id:'t1', itemId:'i1', type:'in', qty:25, price:455, date:'2024-01-20', ref:'PO-2024-001', by:'Dr. Rajesh Mehta', to:'', supplier:'MedIndia Healthcare', notes:'Monthly ER stock', batchNo:'B2024-001', qualityCheck:'passed', condition:'normal', mrn:'MRN-2024-0001', verifiedBy:'' },
@@ -1968,8 +1259,7 @@ function showModal(type,data) {
     const co=DATA.categories.map(c=>'<option value="'+c.id+'" '+(data&&data.categoryId===c.id?'selected':'')+'>'+c.name+'</option>').join('');
     const sdo=['Normal','Cool','Cold (2-8C)','Frozen (-20C)','Controlled RT'].map(x=>'<option value="'+x+'" '+(data&&data.storageCondition===x?'selected':'')+'>'+x+'</option>').join('');
     t.textContent=data?'Edit Material':'Add Material';
-    const dopts=DATA.departments.map(d=>'<option value="'+d.id+'" '+(data&&data.departmentId===d.id?'selected':'')+'>'+d.name+'</option>').join('');
-    b.innerHTML='<div class="form-group"><label>Name *</label><input class="form-control" id="fItemName" value="'+(data?data.name:'')+'"></div><div class="form-row"><div class="form-group"><label>Category *</label><select class="form-control" id="fItemCat">'+co+'</select></div><div class="form-group"><label>Department</label><select class="form-control" id="fItemDept"><option value="" '+(data&&!data.departmentId?'selected':'')+'>General Store</option>'+dopts+'</select></div></div><div class="form-row-4"><div class="form-group"><label>Unit *</label><select class="form-control" id="fItemUnit">'+['Pcs','Box','Strip','Bottle','Bag','Roll','Pair','Set','Ltr','Kg','Tablet','Ampoule','Vial','Tube','Packet'].map(u=>'<option '+(data&&data.unit===u?'selected':'')+'>'+u+'</option>').join('')+'</select></div><div class="form-group"><label id="lblSku">SKU</label><div class="form-inline-group"><input class="form-control" id="fItemSku" value="'+(data?data.sku:'')+'"><button class="gen-btn" onclick="generateSku()" type="button">Gen</button></div></div><div class="form-group"><label id="lblBarcode">Barcode</label><div class="form-inline-group"><input class="form-control" id="fItemBarcode" value="'+(data?data.barcode:'')+'"><button class="gen-btn" onclick="generateBarcode()" type="button">Gen</button></div></div></div><div class="form-row-4"><div class="form-group"><label id="lblPrice">Price (₹)</label><input type="number" class="form-control" id="fItemPrice" step="0.01" min="0" value="'+(data&&data.purchasePrice?data.purchasePrice:'')+'"></div><div class="form-group"><label>Supplier</label><input class="form-control" id="fItemSupplier" value="'+(data?data.supplier:'')+'"></div><div class="form-group"><label>Storage</label><select class="form-control" id="fItemStorage">'+sdo+'</select></div><div class="form-group"><label>Min Stock</label><input type="number" class="form-control" id="fItemMin" value="'+(data?data.minStock:10)+'" min="0"></div></div><div class="form-row-4"><div class="form-group"><label>Purchase Date</label><input type="date" class="form-control" id="fItemPurchase" value="'+(data&&data.purchaseDate?data.purchaseDate:'')+'"></div><div class="form-group"><label>Warranty (mo)</label><input type="number" class="form-control" id="fItemWarranty" value="'+(data&&data.warrantyMonths?data.warrantyMonths:0)+'" min="0"></div><div class="form-group"><label>Expiry Date</label><input type="date" class="form-control" id="fItemExpiry" value="'+(data&&data.expiryDate?data.expiryDate:'')+'"></div><div class="form-group"><label>&#160;</label><button class="btn btn-outline btn-sm w-full" onclick="document.getElementById(\'fItemBarcode\').value=prompt(\'Enter barcode:\')">Set Barcode</button></div></div>';
+    b.innerHTML='<div class="form-group"><label>Name *</label><input class="form-control" id="fItemName" value="'+(data?data.name:'')+'"></div><div class="form-row-4"><div class="form-group"><label>Category *</label><select class="form-control" id="fItemCat">'+co+'</select></div><div class="form-group"><label>Unit *</label><select class="form-control" id="fItemUnit">'+['Pcs','Box','Strip','Bottle','Bag','Roll','Pair','Set','Ltr','Kg','Tablet','Ampoule','Vial','Tube','Packet'].map(u=>'<option '+(data&&data.unit===u?'selected':'')+'>'+u+'</option>').join('')+'</select></div><div class="form-group"><label id="lblSku">SKU</label><div class="form-inline-group"><input class="form-control" id="fItemSku" value="'+(data?data.sku:'')+'"><button class="gen-btn" onclick="generateSku()" type="button">Gen</button></div></div><div class="form-group"><label id="lblBarcode">Barcode</label><div class="form-inline-group"><input class="form-control" id="fItemBarcode" value="'+(data?data.barcode:'')+'"><button class="gen-btn" onclick="generateBarcode()" type="button">Gen</button></div></div></div><div class="form-row-4"><div class="form-group"><label id="lblPrice">Price (₹)</label><input type="number" class="form-control" id="fItemPrice" step="0.01" min="0" value="'+(data&&data.purchasePrice?data.purchasePrice:'')+'"></div><div class="form-group"><label>Supplier</label><input class="form-control" id="fItemSupplier" value="'+(data?data.supplier:'')+'"></div><div class="form-group"><label>Storage</label><select class="form-control" id="fItemStorage">'+sdo+'</select></div><div class="form-group"><label>Min Stock</label><input type="number" class="form-control" id="fItemMin" value="'+(data?data.minStock:10)+'" min="0"></div></div><div class="form-row-4"><div class="form-group"><label>Purchase Date</label><input type="date" class="form-control" id="fItemPurchase" value="'+(data&&data.purchaseDate?data.purchaseDate:'')+'"></div><div class="form-group"><label>Warranty (mo)</label><input type="number" class="form-control" id="fItemWarranty" value="'+(data&&data.warrantyMonths?data.warrantyMonths:0)+'" min="0"></div><div class="form-group"><label>Expiry Date</label><input type="date" class="form-control" id="fItemExpiry" value="'+(data&&data.expiryDate?data.expiryDate:'')+'"></div><div class="form-group"><label>&#160;</label><button class="btn btn-outline btn-sm w-full" onclick="document.getElementById(\'fItemBarcode\').value=prompt(\'Enter barcode:\')">Set Barcode</button></div></div>';
     f.innerHTML='<button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveItem(\''+(data?data.id:'')+'\')">Save</button>';
   } else if(type==='vendor'){
     t.textContent=data?'Edit Vendor':'Add Vendor';
@@ -2004,9 +1294,9 @@ function saveDepartment(id) {
   const n=document.getElementById('fDeptName').value.trim(),c=document.getElementById('fDeptCode').value.trim(),d=document.getElementById('fDeptDesc').value.trim();
   if(!n||!c){alert('Name and Code required');return;}
   if(id){const x=DATA.departments.find(x=>x.id===id);if(x){x.name=n;x.code=c;x.description=d;}}else DATA.departments.push({id:genId(),name:n,code:c,description:d});
-  saveData();logAudit('update','Department '+(id?'updated: ':'created: ')+n);closeModal();renderDepartments();populateDropdowns();showToast('Department '+(id?'Updated':'Created'),n,'success');
+  saveData();logAudit('update','Department '+(id?'updated: ':'created: ')+n);closeModal();renderDepartments();populateDropdowns();
 }
-function deleteDepartment(id){const n=getDept(id)?getDept(id).name:'';showModal('delete',{type:'department',onConfirm:()=>{DATA.departments=DATA.departments.filter(d=>d.id!==id);saveData();logAudit('delete','Deleted department');renderDepartments();populateDropdowns();showToast('Department Deleted',n,'error');}});}
+function deleteDepartment(id){showModal('delete',{type:'department',onConfirm:()=>{DATA.departments=DATA.departments.filter(d=>d.id!==id);saveData();logAudit('delete','Deleted department');renderDepartments();populateDropdowns();}});}
 function renderDepartments() {
   const t=document.getElementById('deptsTable');
   if(!DATA.departments.length){t.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="icon">&#9730;</div><p>No departments yet.</p></div></td></tr>';return;}
@@ -2023,32 +1313,31 @@ function saveCategory(id) {
   const n=document.getElementById('fCatName').value.trim(),d=document.getElementById('fCatDesc').value.trim();
   if(!n){alert('Name required');return;}
   if(id){const x=DATA.categories.find(x=>x.id===id);if(x){x.name=n;x.description=d;}}else DATA.categories.push({id:genId(),name:n,description:d});
-  saveData();logAudit('update','Category '+(id?'updated: ':'created: ')+n);closeModal();renderCategories();populateDropdowns();showToast('Category '+(id?'Updated':'Created'),n,'success');
+  saveData();logAudit('update','Category '+(id?'updated: ':'created: ')+n);closeModal();renderCategories();populateDropdowns();
 }
-function deleteCategory(id){if(DATA.items.some(i=>i.categoryId===id)){showToast('Cannot Delete','Category in use by materials.','error');return;}const n=getCategory(id)?getCategory(id).name:'';showModal('delete',{type:'category',onConfirm:()=>{DATA.categories=DATA.categories.filter(c=>c.id!==id);saveData();renderCategories();populateDropdowns();showToast('Category Deleted',n,'error');}});}
+function deleteCategory(id){if(DATA.items.some(i=>i.categoryId===id)){alert('Category in use.');return;}showModal('delete',{type:'category',onConfirm:()=>{DATA.categories=DATA.categories.filter(c=>c.id!==id);saveData();renderCategories();populateDropdowns();}});}
 function renderCategories() {
   const t=document.getElementById('catsTable');
   if(!DATA.categories.length){t.innerHTML='<tr><td colspan="3"><div class="empty-state"><div class="icon">&#9776;</div><p>No categories.</p></div></td></tr>';return;}
   t.innerHTML=DATA.categories.map(c=>'<tr><td><strong>'+c.name+'</strong></td><td>'+(c.description||'-')+'</td><td><button class="btn btn-outline btn-sm" onclick=\'showModal("category",'+JSON.stringify(c).replace(/'/g,"&#39;")+')\'>Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteCategory(\''+c.id+'\')">Delete</button></td></tr>').join('');
 }
 function saveItem(id) {
-  const n=document.getElementById('fItemName').value.trim(),cat=document.getElementById('fItemCat').value,u=document.getElementById('fItemUnit').value,s=document.getElementById('fItemSku').value.trim(),bc=document.getElementById('fItemBarcode').value.trim(),pr=parseFloat(document.getElementById('fItemPrice').value)||0,sup=document.getElementById('fItemSupplier').value.trim(),st=document.getElementById('fItemStorage').value,min=parseFloat(document.getElementById('fItemMin').value)||0,pd=document.getElementById('fItemPurchase').value,wm=parseInt(document.getElementById('fItemWarranty').value)||0,ed=document.getElementById('fItemExpiry').value,dept=document.getElementById('fItemDept').value;
+  const n=document.getElementById('fItemName').value.trim(),cat=document.getElementById('fItemCat').value,u=document.getElementById('fItemUnit').value,s=document.getElementById('fItemSku').value.trim(),bc=document.getElementById('fItemBarcode').value.trim(),pr=parseFloat(document.getElementById('fItemPrice').value)||0,sup=document.getElementById('fItemSupplier').value.trim(),st=document.getElementById('fItemStorage').value,min=parseFloat(document.getElementById('fItemMin').value)||0,pd=document.getElementById('fItemPurchase').value,wm=parseInt(document.getElementById('fItemWarranty').value)||0,ed=document.getElementById('fItemExpiry').value;
   if(!n||!cat||!u){alert('Name, Category, Unit required');return;}
-  const obj={name:n,categoryId:cat,departmentId:dept,unit:u,sku:s,barcode:bc,purchasePrice:pr,supplier:sup,storageCondition:st,minStock:min,purchaseDate:pd,warrantyMonths:wm,expiryDate:ed};
+  const obj={name:n,categoryId:cat,unit:u,sku:s,barcode:bc,purchasePrice:pr,supplier:sup,storageCondition:st,minStock:min,purchaseDate:pd,warrantyMonths:wm,expiryDate:ed};
   if(id){const x=DATA.items.find(x=>x.id===id);if(x)Object.assign(x,obj);}
   else DATA.items.push({id:genId(),...obj});
-  saveData();logAudit('update','Item '+(id?'updated: ':'created: ')+n);closeModal();renderItems();populateDropdowns();showToast('Material '+(id?'Updated':'Created'),n,'success');
+  saveData();logAudit('update','Item '+(id?'updated: ':'created: ')+n);closeModal();renderItems();populateDropdowns();
 }
-function deleteItem(id){if(DATA.transactions.some(t=>t.itemId===id)){showToast('Cannot Delete','Item has transaction history.','error');return;}showModal('delete',{type:'material',onConfirm:()=>{const n=getItem(id)?getItem(id).name:'';DATA.items=DATA.items.filter(i=>i.id!==id);saveData();renderItems();populateDropdowns();showToast('Material Deleted',n,'error');}});}
+function deleteItem(id){if(DATA.transactions.some(t=>t.itemId===id)){alert('Has transactions.');return;}showModal('delete',{type:'material',onConfirm:()=>{DATA.items=DATA.items.filter(i=>i.id!==id);saveData();renderItems();populateDropdowns();}});}
 function renderItems() {
   const q=document.getElementById('itemSearch').value.toLowerCase();
-  const df=document.getElementById('itemDeptFilter').value,cf=document.getElementById('itemCatFilter').value;
+  const df=document.getElementById('itemDeptFilter').value;
   let f=DATA.items.filter(i=>i.name.toLowerCase().includes(q)||(i.sku&&i.sku.toLowerCase().includes(q))||(i.barcode&&i.barcode.includes(q)));
-  if(df)f=f.filter(i=>i.departmentId===df||DATA.transactions.some(t=>t.itemId===i.id&&t.departmentId===df));
-  if(cf)f=f.filter(i=>i.categoryId===cf);
+  if(df){const deptIds=DATA.transactions.filter(t=>t.departmentId===df).map(t=>t.itemId);f=f.filter(i=>deptIds.includes(i.id));}
   const t=document.getElementById('itemsTable');
   if(!f.length){t.innerHTML='<tr><td colspan="13"><div class="empty-state"><div class="icon">&#9746;</div><p>No materials found.</p></div></td></tr>';return;}
-  t.innerHTML=f.map(i=>{const c=getCategory(i.categoryId),lc=getItemLifecycle(i),we=lc.warrantyEndDate?lc.warrantyEndDate.toLocaleDateString():'-',ps=i.purchasePrice?'₹'+i.purchasePrice.toFixed(2):'-';const itemDept=i.departmentId?getDept(i.departmentId):null;const depts=itemDept?itemDept.name:(DATA.departments.filter(d=>DATA.transactions.some(t=>t.itemId===i.id&&t.departmentId===d.id)).map(d=>d.name).join(', ')||'General Store');return '<tr class="'+(lc.status==='expired'?'status-expired':lc.status==='warranty-ending'?'status-warranty-ending':'')+'"><td><strong>'+i.name+'</strong></td><td style="font-size:10px">'+(depts||'-')+'</td><td>'+(c?c.name:'-')+'</td><td>'+i.unit+'</td><td class="font-mono" style="font-size:10px">'+(i.sku||i.barcode||'-')+'</td><td class="price-col">'+ps+'</td><td>'+(i.supplier||'-')+'</td><td>'+(i.storageCondition||'-')+'</td><td>'+(i.purchaseDate||'-')+'</td><td>'+we+'</td><td>'+(i.expiryDate||'-')+'</td><td>'+lifecycleStatusBadge(lc)+'</td><td><button class="btn btn-outline btn-sm" onclick=\'showModal("item",'+JSON.stringify(i).replace(/'/g,"&#39;")+')\'>Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteItem(\''+i.id+'\')">Delete</button></td></tr>';}).join('');
+  t.innerHTML=f.map(i=>{const c=getCategory(i.categoryId),lc=getItemLifecycle(i),we=lc.warrantyEndDate?lc.warrantyEndDate.toLocaleDateString():'-',ps=i.purchasePrice?'₹'+i.purchasePrice.toFixed(2):'-';const depts=DATA.departments.filter(d=>DATA.transactions.some(t=>t.itemId===i.id&&t.departmentId===d.id)).map(d=>d.code).join(', ');return '<tr class="'+(lc.status==='expired'?'status-expired':lc.status==='warranty-ending'?'status-warranty-ending':'')+'"><td><strong>'+i.name+'</strong></td><td style="font-size:10px">'+(depts||'-')+'</td><td>'+(c?c.name:'-')+'</td><td>'+i.unit+'</td><td class="font-mono" style="font-size:10px">'+(i.sku||i.barcode||'-')+'</td><td class="price-col">'+ps+'</td><td>'+(i.supplier||'-')+'</td><td>'+(i.storageCondition||'-')+'</td><td>'+(i.purchaseDate||'-')+'</td><td>'+we+'</td><td>'+(i.expiryDate||'-')+'</td><td>'+lifecycleStatusBadge(lc)+'</td><td><button class="btn btn-outline btn-sm" onclick=\'showModal("item",'+JSON.stringify(i).replace(/'/g,"&#39;")+')\'>Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteItem(\''+i.id+'\')">Delete</button></td></tr>';}).join('');
 }
 // VENDORS
 function saveVendor(id) {
@@ -2056,9 +1345,9 @@ function saveVendor(id) {
   if(!n||!c||!p){alert('Name, Code, Phone required');return;}
   if(id){const x=DATA.vendors.find(x=>x.id===id);if(x)Object.assign(x,{name:n,code:c,contact:ct,phone:p,email:e,credentials:cr,status:s});}
   else DATA.vendors.push({id:genId(),name:n,code:c,contact:ct,phone:p,email:e,credentials:cr,status:s});
-  saveData();logAudit('update','Vendor '+(id?'updated: ':'created: ')+n);closeModal();renderVendors();populateDropdowns();showToast('Vendor '+(id?'Updated':'Created'),n,'success');
+  saveData();logAudit('update','Vendor '+(id?'updated: ':'created: ')+n);closeModal();renderVendors();populateDropdowns();
 }
-function deleteVendor(id){const n=getVendor(id)?getVendor(id).name:'';showModal('delete',{type:'vendor',onConfirm:()=>{DATA.vendors=DATA.vendors.filter(v=>v.id!==id);saveData();renderVendors();populateDropdowns();showToast('Vendor Deleted',n,'error');}});}
+function deleteVendor(id){showModal('delete',{type:'vendor',onConfirm:()=>{DATA.vendors=DATA.vendors.filter(v=>v.id!==id);saveData();renderVendors();populateDropdowns();}});}
 function renderVendors() {
   const t=document.getElementById('vendorsTable');
   if(!DATA.vendors.length){t.innerHTML='<tr><td colspan="8"><div class="empty-state"><p>No vendors.</p></div></td></tr>';return;}
@@ -2098,9 +1387,9 @@ function saveEmployee(id) {
       }
     }
   }
-  saveData();logAudit('update','Employee '+(id?'updated: ':'created: ')+n);closeModal();renderEmployees();populateDropdowns();showToast('Employee '+(id?'Updated':'Created'),n,'success');
+  saveData();logAudit('update','Employee '+(id?'updated: ':'created: ')+n);closeModal();renderEmployees();populateDropdowns();
 }
-function deleteEmployee(id){const n=getEmployee(id)?getEmployee(id).name:'';showModal('delete',{type:'employee',onConfirm:()=>{if(DATA.employees)DATA.employees=DATA.employees.filter(e=>e.id!==id);saveData();renderEmployees();populateDropdowns();showToast('Employee Deleted',n,'error');}});}
+function deleteEmployee(id){showModal('delete',{type:'employee',onConfirm:()=>{if(DATA.employees)DATA.employees=DATA.employees.filter(e=>e.id!==id);saveData();renderEmployees();populateDropdowns();}});}
 function renderEmployees() {
   const t=document.getElementById('employeesTable');
   if(!DATA.employees||!DATA.employees.length){t.innerHTML='<tr><td colspan="9"><div class="empty-state"><p>No employees.</p></div></td></tr>';return;}
@@ -2129,13 +1418,13 @@ function saveAdmin(id) {
   const permData=Object.keys(perms).length?perms:undefined;
   if(id){const x=DATA.admins.find(x=>x.id===id);if(x){x.name=n;x.role=r;if(p)x.password=p;x.departmentId=deptId;x.permissions=permData;}}
   else DATA.admins.push({id:genId(),username:u,password:p,name:n,role:r,departmentId:deptId,lastLogin:'',permissions:permData});
-  saveData();closeModal();renderAdmins();showToast('Admin User '+(id?'Updated':'Created'),n,'success');
+  saveData();closeModal();renderAdmins();
 }
 function deleteAdmin(id) {
   const a=getAdmin(id);if(!a)return;
   if(a.role==='super_admin'&&DATA.admins.filter(x=>x.role==='super_admin').length<=1){alert('Cannot delete last super admin.');return;}
   if(CURRENT_ADMIN&&CURRENT_ADMIN.id===id){alert('Cannot delete yourself.');return;}
-  showModal('delete',{type:'admin',onConfirm:()=>{DATA.admins=DATA.admins.filter(x=>x.id!==id);saveData();renderAdmins();showToast('Admin Deleted',a.name,'error');}});
+  showModal('delete',{type:'admin',onConfirm:()=>{DATA.admins=DATA.admins.filter(x=>x.id!==id);saveData();renderAdmins();}});
 }
 function renderAdmins() {
   const t=document.getElementById('adminsTable');
@@ -2144,10 +1433,10 @@ function renderAdmins() {
 }// TRANSACTIONS
 function populateDropdowns() {
   const dopts=DATA.departments.map(d=>'<option value="'+d.id+'">'+d.name+' ('+d.code+')</option>').join('');
-  ['inDepartment','outDepartment','histDept','stockDeptFilter','expiryDept','forecastDept','itemDeptFilter','reportDeptFilter'].forEach(id=>{const el=document.getElementById(id);if(el){const v=el.value;el.innerHTML=(id==='histDept'||id==='stockDeptFilter'||id==='expiryDept'||id==='forecastDept'||id==='itemDeptFilter'||id==='reportDeptFilter')?'<option value="">All Departments</option>'+dopts:dopts;if(v)el.value=v;}});
+  ['inDepartment','outDepartment','histDept','stockDeptFilter','expiryDept','forecastDept','itemDeptFilter'].forEach(id=>{const el=document.getElementById(id);if(el){const v=el.value;el.innerHTML=(id==='histDept'||id==='stockDeptFilter'||id==='expiryDept'||id==='forecastDept'||id==='itemDeptFilter')?'<option value="">All Departments</option>'+dopts:dopts;if(v)el.value=v;}});
   const iopts=DATA.items.map(i=>'<option value="'+i.id+'">'+i.name+' ('+i.unit+')</option>').join('');
   ['inItem','outItem'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=iopts;});
-  ['stockCatFilter','forecastCat','itemCatFilter'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">All Categories</option>'+DATA.categories.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');});
+  ['stockCatFilter','forecastCat'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">All Categories</option>'+DATA.categories.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');});
   const sel=document.getElementById('inSupplier');if(sel)sel.innerHTML='<option value="">Select vendor...</option>'+DATA.vendors.filter(v=>v.status==='active').map(v=>'<option value="'+v.name+'">'+v.name+' ('+v.code+')</option>').join('');
   const eopts=DATA.employees&&DATA.employees.length?DATA.employees.filter(e=>e.status==='active').map(e=>'<option value="'+e.name+'">'+e.name+' ('+e.empId+')</option>').join(''):'';
   ['inBy','inVerified'].forEach(id=>{const el=document.getElementById(id);if(el){const v=el.value;el.innerHTML='<option value="">Select staff...</option>'+eopts;if(v)el.value=v;}});
@@ -2163,8 +1452,8 @@ document.getElementById('formIn').addEventListener('submit',function(e){
   if(!deptId||!itemId||!qty||qty<=0||!batchNo){showAlert('alertIn','Department, Material, Qty, Batch# required.','danger');return;}
   if(price>0){const item=getItem(itemId);if(item){item.purchasePrice=price;if(supplier)item.supplier=supplier;}}
   DATA.transactions.push({id:genId(),itemId,departmentId:deptId,type:'in',qty,price,date,ref,by,to:'',supplier,notes,batchNo,qualityCheck:qc,condition:cond,mrn,verifiedBy:verified});
-   saveData();logAudit('in','Material In: '+(getItem(itemId)?getItem(itemId).name:'')+' x'+qty+' ('+mrn+')');
-  showAlert('alertIn','Recorded: '+qty+' units. MRN: '+mrn,'success');showToast('Material In',''+(getItem(itemId)?getItem(itemId).name:'')+' x'+qty+' | MRN: '+mrn,'success');
+  saveData();logAudit('in','Material In: '+(getItem(itemId)?getItem(itemId).name:'')+' x'+qty+' ('+mrn+')');
+  showAlert('alertIn','Recorded: '+qty+' units. MRN: '+mrn,'success');
   document.getElementById('inMRN').value=nextMRN();
   this.reset();document.getElementById('inDate').value=new Date().toISOString().split('T')[0];document.getElementById('inMRN').value=nextMRN();
   populateDropdowns();renderDashboard();
@@ -2175,15 +1464,15 @@ document.getElementById('formOut').addEventListener('submit',function(e){
   if(!deptId||!itemId||!qty||qty<=0){showAlert('alertOut','Required fields missing.','danger');return;}
   const cs=getStock(itemId,deptId);if(qty>cs){showAlert('alertOut','Insufficient stock! Available: '+cs,'danger');return;}
   DATA.transactions.push({id:genId(),itemId,departmentId:deptId,type:'out',qty,price:0,date,ref:'',by,to,supplier:'',notes,batchNo,qualityCheck:'',condition:'',mrn:'',verifiedBy:''});
-   saveData();logAudit('out','Material Out: '+(getItem(itemId)?getItem(itemId).name:'')+' x'+qty+' to '+(to||'Unknown'));
-  showAlert('alertOut','Recorded: '+qty+' units outgoing.','success');showToast('Material Out',''+(getItem(itemId)?getItem(itemId).name:'')+' x'+qty+' issued to '+(to||'Unknown'),'warning');
+  saveData();logAudit('out','Material Out: '+(getItem(itemId)?getItem(itemId).name:'')+' x'+qty+' to '+(to||'Unknown'));
+  showAlert('alertOut','Recorded: '+qty+' units outgoing.','success');
   this.reset();document.getElementById('outDate').value=new Date().toISOString().split('T')[0];
   populateDropdowns();renderDashboard();
 });
 function getStock(itemId,deptId){let i=0,o=0;DATA.transactions.forEach(tx=>{if(tx.itemId===itemId&&tx.departmentId===deptId){if(tx.type==='in')i+=tx.qty;else o+=tx.qty;}});return i-o;}
-function getAllStock(){const m={};DATA.transactions.forEach(tx=>{const k=tx.itemId+'|'+tx.departmentId;if(!m[k])m[k]={itemId:tx.itemId,departmentId:tx.departmentId,qty:0};if(tx.type==='in')m[k].qty+=tx.qty;else m[k].qty-=tx.qty;});DATA.items.forEach(i=>{if(!Object.values(m).some(s=>s.itemId===i.id)){const k=i.id+'|';if(!m[k])m[k]={itemId:i.id,departmentId:'',qty:0};}});return Object.values(m);}
+function getAllStock(){const m={};DATA.transactions.forEach(tx=>{const k=tx.itemId+'|'+tx.departmentId;if(!m[k])m[k]={itemId:tx.itemId,departmentId:tx.departmentId,qty:0};if(tx.type==='in')m[k].qty+=tx.qty;else m[k].qty-=tx.qty;});return Object.values(m);}
 function showAlert(id,msg,type){const el=document.getElementById(id);if(!el){alert(msg);return;}el.textContent=msg;el.className='alert show alert-'+type;setTimeout(()=>el.classList.remove('show'),4000);}
-function deleteTransaction(id){showModal('delete',{type:'transaction',onConfirm:()=>{const tx=DATA.transactions.find(t=>t.id===id);DATA.transactions=DATA.transactions.filter(t=>t.id!==id);saveData();logAudit('delete','Deleted transaction');renderHistory();renderDashboard();showToast('Transaction Deleted','','error');}});}
+function deleteTransaction(id){showModal('delete',{type:'transaction',onConfirm:()=>{const tx=DATA.transactions.find(t=>t.id===id);DATA.transactions=DATA.transactions.filter(t=>t.id!==id);saveData();logAudit('delete','Deleted transaction');renderHistory();renderDashboard();}});}
 function clearDateFilter(){document.getElementById('histDateFrom').value='';document.getElementById('histDateTo').value='';renderHistory();}
 function showItemStockByDeptIn(){
   const itemId=document.getElementById('inItem').value;
@@ -2530,10 +1819,8 @@ function renderReports() {
   rt.innerHTML=sd.map(s=>{const i=getItem(s.itemId),d=getDept(s.departmentId);if(!i)return'';const v=i.purchasePrice?s.qty*i.purchasePrice:0;return'<tr><td><strong>'+i.name+'</strong></td><td>'+(d?d.name:'')+'</td><td>'+s.qty+' '+i.unit+'</td><td>₹'+v.toFixed(2)+'</td><td>'+(i.supplier||'-')+'</td><td><span class="badge badge-active">Normal</span></td><td>'+(s.qty<=0?'<span class="badge badge-out">Out</span>':s.qty<i.minStock?'<span class="badge badge-in">Low</span>':'<span class="badge badge-active">OK</span>')+'</td></tr>';}).filter(r=>r).join('');
   // Department-wise usage table
   const dt=document.getElementById('reportDeptTable');
-  const reportDeptFilter=document.getElementById('reportDeptFilter').value;
-  const filteredDepts=reportDeptFilter?DATA.departments.filter(d=>d.id===reportDeptFilter):DATA.departments;
   if(dt){
-    dt.innerHTML=filteredDepts.map(d=>{
+    dt.innerHTML=DATA.departments.map(d=>{
       const ds=sd.filter(s=>s.departmentId===d.id);
       const val=ds.reduce((s,x)=>{const i=getItem(x.itemId);return s+(i&&i.purchasePrice?i.purchasePrice*x.qty:0);},0);
       const txs=DATA.transactions.filter(t=>t.departmentId===d.id);
@@ -2571,62 +1858,7 @@ function exportReportExcel() {
   const txData=[['Date','Item','Department','Type','Qty','Unit Price','Total','Batch#','QC','Condition','MRN','Supplier','Staff']];
   DATA.transactions.slice().reverse().forEach(t=>{const i=getItem(t.itemId),d=getDept(t.departmentId),p=t.price||0;txData.push([t.date,i?i.name:'',d?d.name:'',t.type,t.qty,p,p*t.qty,t.batchNo||'',t.qualityCheck||'',t.condition||'',t.mrn||'',t.supplier||'',t.by||t.to||'']);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(txData),'Transactions');
-  // Sheet 6+: Separate Department Wise Inventory sheets
-  const deptId=document.getElementById('reportDeptFilter').value;
-  const depts=deptId?DATA.departments.filter(d=>d.id===deptId):DATA.departments;
-  depts.forEach(d=>{
-    const ds=sd.filter(s=>s.departmentId===d.id);
-    const deptSheet=[['Material','Category','Stock','Unit Price','Total Value','Supplier','Batch/Lot','Condition','Status']];
-    if(!ds.length){deptSheet.push(['No inventory items','','','','','','','','']);}else{
-      ds.forEach(s=>{
-        const i=getItem(s.itemId),c=i?getCategory(i.categoryId):null,lc=getItemLifecycle(i);
-        if(!i)return;
-        const up=i.purchasePrice||0;
-        const ri=[...DATA.transactions].filter(t=>t.itemId===s.itemId&&t.departmentId===s.departmentId&&t.type==='in').sort((a,b)=>b.date.localeCompare(a.date));
-        const b=ri.length?ri[0].batchNo:'';
-        deptSheet.push([i.name,c?c.name:'',s.qty,up,up*s.qty,i.supplier||'',b,'Normal',lc.label]);
-      });
-    }
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(deptSheet),d.name.substring(0,31));
-  });
   XLSX.writeFile(wb,'Hospital_Inventory_Full_Report_'+new Date().toISOString().split('T')[0]+'.xlsx');
-}
-// ============================================================
-// EXPORT DEPARTMENT WISE INVENTORY EXCEL
-// ============================================================
-function exportDeptWiseExcel() {
-  if(typeof XLSX==='undefined'){alert('SheetJS library not loaded. Check internet connection.');return;}
-  const deptId=document.getElementById('reportDeptFilter').value;
-  const sd=getAllStock();
-  const deptName=deptId?(getDept(deptId)?getDept(deptId).name:'Selected'):'All';
-  const wb=XLSX.utils.book_new();
-  // Separate sheets per department
-  const depts=deptId?DATA.departments.filter(d=>d.id===deptId):DATA.departments;
-  depts.forEach(d=>{
-    const ds=sd.filter(s=>s.departmentId===d.id);
-    const deptSheet=[['Material','Category','Stock','Unit Price','Total Value','Supplier','Batch/Lot','Condition','Status']];
-    if(!ds.length){deptSheet.push(['No inventory items','','','','','','','','']);}else{
-      ds.forEach(s=>{
-        const i=getItem(s.itemId),c=i?getCategory(i.categoryId):null,lc=getItemLifecycle(i);
-        if(!i)return;
-        const up=i.purchasePrice||0;
-        const ri=[...DATA.transactions].filter(t=>t.itemId===s.itemId&&t.departmentId===s.departmentId&&t.type==='in').sort((a,b)=>b.date.localeCompare(a.date));
-        const b=ri.length?ri[0].batchNo:'';
-        deptSheet.push([i.name,c?c.name:'',s.qty,up,up*s.qty,i.supplier||'',b,'Normal',lc.label]);
-      });
-    }
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(deptSheet),d.name.substring(0,31));
-  });
-  // Summary sheet
-  const summaryData=[['Department','Items Count','Total Stock','Total Value']];
-  depts.forEach(d=>{
-    const ds=sd.filter(s=>s.departmentId===d.id);
-    const val=ds.reduce((s,x)=>{const i=getItem(x.itemId);return s+(i&&i.purchasePrice?i.purchasePrice*x.qty:0);},0);
-    const totalQty=ds.reduce((s,x)=>s+x.qty,0);
-    summaryData.push([d.name,ds.length,totalQty,val]);
-  });
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summaryData),'Summary');
-  XLSX.writeFile(wb,'Department_Wise_Inventory_'+deptName+'_'+new Date().toISOString().split('T')[0]+'.xlsx');
 }
 // ============================================================
 // EXPORT PDF
@@ -2770,7 +2002,7 @@ function submitDemand(){
     storeApproval:'',storeRemark:'',storeDate:'',
     dateRaised:new Date().toISOString(),dateFulfilled:'',dateReceived:''
   });
-  saveDemands();sendNotification('Demand Raised','New demand for '+qty+'x '+(getItem(itemId)?getItem(itemId).name:'')+' from '+emp.name+' ('+(dept?dept.name:'')+')');closeModalById('demandModal');showToast('Demand Submitted','Awaiting HOD approval.','success');
+  saveDemands();sendNotification('Demand Raised','New demand for '+qty+'x '+(getItem(itemId)?getItem(itemId).name:'')+' from '+emp.name+' ('+(dept?dept.name:'')+')');closeModalById('demandModal');alert('Demand submitted successfully! Awaiting HOD approval.');
 }
 function renderDemands(){
   const tb=document.getElementById('demandsTable');
@@ -2811,7 +2043,7 @@ function approveDemand(id,level){
   if(remark===null)return;
   if(level==='hod'){d.hodApproval='approved';d.hodRemark=remark||'';d.hodDate=new Date().toISOString();d.status='pending_admin';sendNotification('Demand Approved by HOD','Demand #'+id.substring(0,8)+' approved by HOD. Moving to Admin.');}
   else if(level==='admin'){d.adminApproval='approved';d.adminRemark=remark||'';d.adminDate=new Date().toISOString();d.status='pending_storekeeper';sendNotification('Demand Approved by Admin','Demand #'+id.substring(0,8)+' approved by Admin. Moving to Storekeeper.');}
-     saveDemands();showToast('Demand Approved','Status updated to '+(level==='hod'?'Pending Admin':'Pending Storekeeper')+'.','success');
+  saveDemands();alert('Demand approved! Status updated.');
 }
 function rejectDemand(id,level){
   const d=getDemands().find(x=>x.id===id);if(!d)return;
@@ -2819,7 +2051,7 @@ function rejectDemand(id,level){
   if(!reason)return;
   if(level==='hod'){d.hodApproval='rejected';d.hodRemark=reason;d.hodDate=new Date().toISOString();}
   else if(level==='admin'){d.adminApproval='rejected';d.adminRemark=reason;d.adminDate=new Date().toISOString();}
-   d.status='rejected';saveDemands();sendNotification('Demand Rejected','Demand #'+id.substring(0,8)+' was rejected. Reason: '+reason);showToast('Demand Rejected','Reason: '+reason,'error');
+  d.status='rejected';saveDemands();sendNotification('Demand Rejected','Demand #'+id.substring(0,8)+' was rejected. Reason: '+reason);alert('Demand rejected.');
 }
 function fulfillDemand(id){
   const d=getDemands().find(x=>x.id===id);if(!d)return;
@@ -2835,31 +2067,20 @@ function fulfillDemand(id){
   d.storeApproval='fulfilled';d.storeRemark='Fulfilled by store';d.storeDate=new Date().toISOString();d.dateFulfilled=new Date().toISOString();d.status='fulfilled';
   // Add a transaction
   DATA.transactions.push({id:genId(),itemId:d.itemId,departmentId:d.requesterDept,type:'out',qty:d.qty,price:0,date:new Date().toISOString().split('T')[0],ref:'DEM-'+d.id.substring(0,8),by:'',to:d.requesterName,supplier:'',notes:'Demand fulfillment: '+d.purpose,batchNo:'',qualityCheck:'',condition:'',mrn:'',verifiedBy:''});
-   saveDemands();sendNotification('Demand Fulfilled','Your demand for '+d.qty+'x '+i.name+' has been fulfilled by Storekeeper.');showToast('Demand Fulfilled','Stock deducted. Awaiting employee receipt.','success');
+  saveDemands();sendNotification('Demand Fulfilled','Your demand for '+d.qty+'x '+i.name+' has been fulfilled by Storekeeper.');alert('Demand fulfilled! Stock deducted.');
 }
 function receiveDemand(id){
   const d=getDemands().find(x=>x.id===id);if(!d)return;
-   d.dateReceived=new Date().toISOString();d.status='received';saveDemands();sendNotification('Demand Received','Demand #'+id.substring(0,8)+' has been received by '+d.requesterName+'.');showToast('Demand Received','Please close to complete.','success');
+  d.dateReceived=new Date().toISOString();d.status='received';saveDemands();sendNotification('Demand Received','Demand #'+id.substring(0,8)+' has been received by '+d.requesterName+'.');alert('Demand marked as received. Please close to complete.');
 }
 function closeDemand(id){
   const d=getDemands().find(x=>x.id===id);if(!d)return;
   if(!confirm('Close this demand?'))return;
-   d.status='closed';saveDemands();showToast('Demand Closed','Completed.','info');
+  d.status='closed';saveDemands();alert('Demand closed.');
 }
 // ============================================================
 // PUSH NOTIFICATIONS
 // ============================================================
-function showToast(title,text,type){
-  type=type||'info';
-  const icons={success:'&#10003;',warning:'&#9888;',error:'&#10007;',info:'&#8505;'};
-  const c=document.getElementById('toastContainer');
-  const t=document.createElement('div');
-  t.className='toast toast-'+type;
-  t.innerHTML='<span class="toast-icon">'+(icons[type]||icons.info)+'</span><div class="toast-body"><div class="toast-title">'+title+'</div><div class="toast-text">'+text+'</div></div><button class="toast-close" onclick="this.parentElement.classList.remove(\'show\');setTimeout(()=>this.parentElement.remove(),300)">&times;</button>';
-  c.appendChild(t);
-  requestAnimationFrame(()=>{t.classList.add('show');});
-  setTimeout(()=>{if(t.parentElement){t.classList.remove('show');setTimeout(()=>{if(t.parentElement)t.remove();},350);}},5000);
-}
 function sendNotification(title,body){
   if(typeof Notification==='undefined')return;
   if(Notification.permission==='granted'){new Notification('HIMS: '+title,{body,icon:'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" rx="15" fill="%231a73e8"/%3E%3Ctext x="50" y="65" text-anchor="middle" fill="white" font-size="40" font-weight="bold"%3EH%3C/text%3E%3C/svg%3E'});}
@@ -2911,7 +2132,7 @@ function submitReturn(){
   const r={id:nextReturnId(),date:new Date().toISOString(),type,empId,empName:emp?emp.name:'',departmentId:deptId,itemId,qty,reason,hodStatus:'pending',hodBy:'',hodDate:'',hodNotes:'',adminStatus:'pending',adminBy:'',adminDate:'',adminNotes:'',storeStatus:'pending',storeBy:'',storeDate:'',storeNotes:'',employeeReceived:false,employeeReceiveDate:'',status:'pending_hod',activityLog:[{action:'created',by:CURRENT_ADMIN.name,date:new Date().toISOString(),notes:'Return/replacement requested'}],requesterId:CURRENT_ADMIN.id};
   DATA.returns.push(r);saveReturns();
   notifyAll('Return/Replacement requested: '+qty+'x '+(getItem(itemId)?getItem(itemId).name:'')+' ('+type+') - '+reason+' by '+CURRENT_ADMIN.name+' in '+(dept?dept.name:''));
-  closeModal();showToast('Return/Replacement Submitted','Awaiting HOD approval.','success');
+  closeModal();alert('Return/Replacement submitted for HOD approval.');
 }
 function renderReturns(){
   const tb=document.getElementById('returnsTable');
@@ -2954,7 +2175,7 @@ function approveReturn(id,level){
   saveReturns();
   const i=getItem(r.itemId);
   notifyAll('Return/Replacement '+level+' approved: '+r.qty+'x '+(i?i.name:'')+' by '+CURRENT_ADMIN.name);
-  showToast('Return/Replacement '+(level==='store'?'Fulfilled':'Approved'),r.qty+'x '+(i?i.name:'')+' by '+CURRENT_ADMIN.name,'success');
+  alert('Return/Replacement '+(level==='store'?'fulfilled':'approved')+'!');
 }
 function rejectReturn(id,level){
   const reason=prompt('Reason for rejection:');
@@ -2968,7 +2189,7 @@ function rejectReturn(id,level){
   saveReturns();
   const i=getItem(r.itemId);
   notifyAll('Return/Replacement rejected ('+level+'): '+r.qty+'x '+(i?i.name:'')+' - Reason: '+reason);
-  showToast('Return/Replacement Rejected','Reason: '+reason,'error');
+  alert('Return/Replacement rejected.');
 }
 function receiveReturn(id){
   const r=getReturns().find(x=>x.id===id);if(!r)return;
@@ -2976,7 +2197,7 @@ function receiveReturn(id){
   r.activityLog.push({action:'received',by:CURRENT_ADMIN.name,date:new Date().toISOString(),notes:'Item received by employee'});
   saveReturns();
   notifyAll('Return/Replacement received by '+CURRENT_ADMIN.name);
-  showToast('Return/Replacement Completed','Item received by '+CURRENT_ADMIN.name,'success');
+  alert('Return/Replacement completed!');
 }
 function showReturnLog(id){
   const r=getReturns().find(x=>x.id===id);if(!r)return;
