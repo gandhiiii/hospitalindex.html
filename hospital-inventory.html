@@ -203,11 +203,7 @@ textarea.form-control{resize:vertical;min-height:60px}
     <div class="form-group"><label id="lblPassword">Password</label><input class="form-control" id="loginPass" type="password" placeholder="Enter password"></div>
     <button class="btn btn-primary" onclick="login()" id="btnSignIn">Sign In</button>
     <div class="login-error" id="loginError">Invalid username or password.</div>
-    <div style="margin-top:16px;font-size:11px;color:var(--gray-500);text-align:left;padding:8px;background:var(--gray-100);border-radius:8px">
-      <strong id="lblDemo">Demo Credentials:</strong><br>
-      admin / admin123 <span style="color:var(--success)">(Full Access)</span><br>
-      store / store123 <span style="color:var(--warning)">(Storekeeper)</span>
-    </div>
+
     <div style="margin-top:10px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--gray-500)">
       <label id="lblLanguage">Language:</label>
       <select class="lang-select" id="loginLang" onchange="setLanguage(this.value)">
@@ -978,7 +974,7 @@ function applyLanguage(){
   }
   // Apply language to UI elements that have IDs
   const lblMap={
-    lblUsername:'username',lblPassword:'password',btnSignIn:'signIn',lblDemo:'demo',
+    lblUsername:'username',lblPassword:'password',btnSignIn:'signIn',
     lblLanguage:'language',lblName:'name',lblCategory:'category',lblUnit:'unit',
     lblSku:'sku',lblBarcode:'barcode',lblPrice:'price',lblSupplier:'supplier',
     lblStorage:'storage',lblMinStock:'minStock',lblPurchaseDate:'purchaseDate',
