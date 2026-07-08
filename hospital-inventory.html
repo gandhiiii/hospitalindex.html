@@ -186,6 +186,7 @@ textarea.form-control{resize:vertical;min-height:60px}
 .btn-icon{background:none;border:none;cursor:pointer;font-size:16px;padding:4px 8px;border-radius:4px;color:var(--gray-500);transition:all .2s}
 .btn-icon:hover{background:var(--gray-100);color:var(--gray-900)}
 .lang-select{font-size:11px;padding:3px 6px;border:1px solid var(--gray-300);border-radius:4px;background:#fff;cursor:pointer}
+
 .logo-preview{width:40px;height:40px;border-radius:8px;object-fit:contain;background:var(--gray-100);border:1px solid var(--gray-200);display:inline-block;vertical-align:middle}
 .logo-preview-sm{width:24px;height:24px;border-radius:4px;object-fit:contain;vertical-align:middle}
 .sidebar-header .app-logo{font-size:22px;display:flex;align-items:center;gap:8px}
@@ -211,6 +212,7 @@ textarea.form-control{resize:vertical;min-height:60px}
       <select class="lang-select" id="loginLang" onchange="setLanguage(this.value)">
         <option value="en">English</option>
         <option value="hi">हिन्दी</option>
+        <option value="gu">ગુજરાતી</option>
       </select>
     </div>
   </div>
@@ -256,6 +258,7 @@ textarea.form-control{resize:vertical;min-height:60px}
     <div class="breadcrumb" id="breadcrumb">Dashboard</div>
     <div class="header-right">
       <span class="header-user" id="headerUser"></span><span id="liveBadge" style="font-size:9px;padding:2px 6px;border-radius:4px;background:#e6f4ea;color:#1e8e3e;display:none">LOCAL</span>
+      <select id="headerLangSelect" onchange="setLanguage(this.value)" style="font-size:12px;padding:4px 6px;border:1px solid var(--gray-400);border-radius:4px;background:#fff;cursor:pointer;height:28px"><option value="en">English</option><option value="hi">हिन्दी</option><option value="gu">ગુજરાતી</option></select>
       <button class="btn btn-outline btn-sm" onclick="showGuide()">&#9432; Guide</button>
       <button class="btn btn-outline btn-sm" onclick="logout()">Logout</button>
     </div>
@@ -534,7 +537,7 @@ textarea.form-control{resize:vertical;min-height:60px}
           <div class="form-group"><label>App Logo</label><div><img id="logoPreview" class="logo-preview" src="" alt="Logo"><br><input type="file" class="form-control" id="setLogoUpload" accept="image/*" style="max-width:300px;margin-top:6px" onchange="previewLogo(event)"><br><button class="btn btn-primary btn-sm mt-8" onclick="saveLogo()">Upload Logo</button> <button class="btn btn-outline btn-sm mt-8" onclick="resetLogo()">Reset Default</button></div></div>
           <hr style="margin:20px 0">
           <h3 style="font-size:14px;margin-bottom:10px">Language Preference</h3>
-          <div class="form-group"><label>UI Language</label><select class="form-control" id="setLanguage" style="max-width:200px" onchange="setLanguage(this.value)"><option value="en">English</option><option value="hi">हिन्दी</option></select><div style="font-size:10px;color:var(--gray-500);margin-top:4px">Note: Admins &amp; HODs always see English. Reports &amp; Dashboard always in English.</div></div>
+          <div class="form-group"><label>UI Language</label><select class="form-control" id="setLanguage" style="max-width:200px" onchange="setLanguage(this.value)"><option value="en">English</option><option value="hi">हिन्दी</option><option value="gu">ગુજરાતી</option></select><div style="font-size:10px;color:var(--gray-500);margin-top:4px">Note: Admins &amp; HODs always see English. Reports &amp; Dashboard always in English.</div></div>
         </div>
       </div>
     </div>
@@ -994,13 +997,43 @@ const TRANSLATIONS = {
     qty:'मात्रा', date:'तिथि', purpose:'उद्देश्य', notes:'नोट्स',
     appSettings:'ऐप सेटिंग्स', appName:'ऐप नाम', appLogo:'ऐप लोगो',
     languagePref:'भाषा प्राथमिकता', save:'सहेजें',
+  },
+  gu: {
+    username:'વપરાશકર્તા નામ', password:'પાસવર્ડ', signIn:'સાઇન ઇન', demo:'ડેમો ક્રેડેન્શિયલ્સ:',
+    language:'ભાષા', dashboard:'ડેશબોર્ડ', materialIn:'સામગ્રી પ્રવેશ', materialOut:'સામગ્રી નિકાસ',
+    materials:'સામગ્રીઓ', departments:'વિભાગો', categories:'શ્રેણીઓ', vendors:'વિક્રેતા',
+    employees:'કર્મચારીઓ', stockReport:'સ્ટોક રિપોર્ટ', expiryTracker:'સમાપ્તિ ટ્રેકર',
+    forecasting:'આગાહી', scanner:'સ્કેનર', demands:'માગણીઓ', reportsKpi:'રિપોર્ટ અને KPI',
+    auditLog:'ઓડિટ લોગ', history:'ઇતિહાસ', adminUsers:'એડમિન વપરાશકર્તાઓ', settings:'સેટિંગ્સ',
+    logout:'લોગઆઉટ', addMaterial:'+ સામગ્રી ઉમેરો', addDepartment:'+ વિભાગ ઉમેરો',
+    addCategory:'+ શ્રેણી ઉમેરો', addVendor:'+ વિક્રેતા ઉમેરો', addEmployee:'+ કર્મચારી ઉમેરો',
+    addUser:'+ વપરાશકર્તા ઉમેરો', newDemand:'+ નવી માગણી',
+    recordMaterialIn:'સામગ્રી આવક રેકોર્ડ કરો', recordMaterialOut:'સામગ્રી નિકાસ રેકોર્ડ કરો',
+    search:'શોધો...', refresh:'રિફ્રેશ', exportExcel:'એક્સેલ ડાઉનલોડ',
+    exportPDF:'પીડીએફ ડાઉનલોડ', exportCSV:'CSV નિકાસ', print:'રિપોર્ટ પ્રિન્ટ કરો',
+    cancel:'રદ કરો', save:'સાચવો', delete:'કાઢી નાખો', edit:'સંપાદિત કરો',
+    name:'નામ *', category:'શ્રેણી *', unit:'એકમ *', sku:'SKU', barcode:'બારકોડ',
+    price:'કિંમત (₹)', supplier:'સપ્લાયર', storage:'સંગ્રહ', minStock:'લઘુત્તમ સ્ટોક',
+    purchaseDate:'ખરીદી તારીખ', warranty:'વોરંટી (મહિના)', expiryDate:'સમાપ્તિ તારીખ',
+    generate:'જનરેટ કરો', scanBarcode:'બારકોડ/QR સ્કેન કરો', manualEntry:'મેન્યુઅલ એન્ટ્રી',
+    lookup:'શોધો', startCamera:'કેમેરા શરૂ કરો', stopCamera:'કેમેરા બંધ કરો',
+    allDepts:'બધા વિભાગો', allCats:'બધી શ્રેણીઓ', allStatus:'બધી સ્થિતિઓ',
+    allTypes:'બધા પ્રકારો', allPriorities:'બધી પ્રાથમિકતાઓ',
+    pendingHod:'HOD લંબિત', pendingAdmin:'એડમિન લંબિત', pendingStore:'સ્ટોરકીપર લંબિત',
+    fulfilled:'પૂર્ણ', received:'પ્રાપ્ત', closed:'બંધ', rejected:'નકારેલ',
+    hod:'HOD', admin:'એડમિન', store:'સ્ટોર', status:'સ્થિતિ', actions:'ક્રિયાઓ',
+    qty:'જથ્થો', date:'તારીખ', purpose:'હેતુ', notes:'નોંધો',
+    appSettings:'એપ સેટિંગ્સ', appName:'એપ નામ', appLogo:'એપ લોગો',
+    languagePref:'ભાષા પસંદગી', save:'સાચવો',
   }
 };
 function t(key){return TRANSLATIONS[APP_LANG]&&TRANSLATIONS[APP_LANG][key]?TRANSLATIONS[APP_LANG][key]:TRANSLATIONS.en[key]||key;}
 function setLanguage(lang){
   APP_LANG=lang;
+  localStorage.setItem('hims_lang',lang);
   const el=document.getElementById('setLanguage');if(el)el.value=lang;
   const el2=document.getElementById('loginLang');if(el2)el2.value=lang;
+  const el3=document.getElementById('headerLangSelect');if(el3)el3.value=lang;
   if(CURRENT_ADMIN){CURRENT_ADMIN.language=lang;saveData();}
   applyLanguage();
 }
@@ -2365,7 +2398,9 @@ function updateHodStatus(){
 function init() {
   populateDropdowns();applyRoleRestrictions();updateHodStatus();
   applyAppBranding();
-  if(CURRENT_ADMIN&&CURRENT_ADMIN.language)setLanguage(CURRENT_ADMIN.language);
+  const savedLang=localStorage.getItem('hims_lang');
+  if(savedLang)setLanguage(savedLang);
+  else if(CURRENT_ADMIN&&CURRENT_ADMIN.language)setLanguage(CURRENT_ADMIN.language);
   else setLanguage('en');
   renderDashboard();renderDepartments();renderCategories();renderItems();renderVendors();renderEmployees();renderStock();renderExpiry();renderForecast();renderHistory();renderAdmins();renderScanHistory();renderAuditLog();renderReports();renderDemands();renderReturns();renderOrders();
   // Badges
