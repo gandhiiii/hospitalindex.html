@@ -2410,7 +2410,9 @@ function syncFirebase(){
     });
   })();
 }
-if(!checkAuth()){document.getElementById('loginOverlay').classList.remove('hidden');}else{init();syncFirebase();}
+const isAuth=checkAuth();
+if(isAuth){init();}
+syncFirebase();
 </script>
 </body>
 </html>
