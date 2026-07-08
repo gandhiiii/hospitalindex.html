@@ -1108,6 +1108,22 @@ function setLanguage(lang){
   const el3=document.getElementById('headerLangSelect');if(el3)el3.value=lang;
   if(CURRENT_ADMIN){CURRENT_ADMIN.language=lang;saveData();}
   applyLanguage();
+  // Re-render current page to update dynamic content
+  const activePage=document.querySelector('.page.active');
+  if(activePage){
+    const id=activePage.id.replace('page-','');
+    const renderMap={
+      dashboard:'renderDashboard', stock:'renderStock', expiry:'renderExpiry',
+      forecast:'renderForecast', history:'renderHistory', items:'renderItems',
+      departments:'renderDepartments', categories:'renderCategories',
+      vendors:'renderVendors', employees:'renderEmployees',
+      admins:'renderAdmins', scanner:'renderScanHistory',
+      reports:'renderReports', audit:'renderAuditLog',
+      returns:'renderReturns', orders:'renderOrders',
+    };
+    const fnName=renderMap[id];
+    if(fnName&&window[fnName])window[fnName]();
+  }
 }
 function applyLanguage(){
   if(CURRENT_ADMIN){
