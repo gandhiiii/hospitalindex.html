@@ -226,28 +226,28 @@ textarea.form-control{resize:vertical;min-height:60px}
     <div class="compliance-badge">NABH &amp; GCI Compliant</div>
   </div>
   <nav class="sidebar-nav" id="sidebarNav">
-    <div class="nav-item active" data-page="dashboard"><span class="icon">&#9632;</span> Dashboard</div>
-    <div class="nav-item" data-page="material-in"><span class="icon">&#8593;</span> Material In</div>
-    <div class="nav-item" data-page="material-out"><span class="icon">&#8595;</span> Material Out</div>
-    <div class="nav-item" data-page="items"><span class="icon">&#9746;</span> Materials</div>
-    <div class="nav-item" data-page="departments"><span class="icon">&#9730;</span> Departments</div>
-    <div class="nav-item" data-page="categories"><span class="icon">&#9776;</span> Categories</div>
-    <div class="nav-item" data-page="vendors"><span class="icon">&#127970;</span> Vendors</div>
-    <div class="nav-item" data-page="employees"><span class="icon">&#128101;</span> Employees</div>
-    <div class="nav-item" data-page="stock"><span class="icon">&#9783;</span> Stock Report</div>
-    <div class="nav-item" data-page="expiry"><span class="icon">&#9200;</span> Expiry Tracker <span class="badge" id="expiryBadge">0</span></div>
-    <div class="nav-item" data-page="forecast"><span class="icon">&#128200;</span> Forecasting <span class="badge" id="forecastBadge">0</span></div>
-    <div class="nav-item" data-page="scanner"><span class="icon">&#9807;</span> Scanner</div>
-    <div class="nav-item" data-page="returns"><span class="icon">&#128260;</span> Returns <span class="badge" id="returnBadge">0</span></div>
-    <div class="nav-item" data-page="orders"><span class="icon">&#128230;</span> Orders</div>
-    <div class="nav-item" data-page="demands"><span class="icon">&#128221;</span> Demands <span class="badge" id="demandBadge">0</span></div>
-    <div class="nav-item" data-page="reports"><span class="icon">&#128202;</span> Reports &amp; KPI</div>
-    <div class="nav-item" data-page="audit"><span class="icon">&#9776;</span> Audit Log</div>
-    <div class="nav-item" data-page="history"><span class="icon">&#8635;</span> History</div>
+    <div class="nav-item active" data-page="dashboard"><span class="icon">&#9632;</span> <span class="nav-text">Dashboard</span></div>
+    <div class="nav-item" data-page="material-in"><span class="icon">&#8593;</span> <span class="nav-text">Material In</span></div>
+    <div class="nav-item" data-page="material-out"><span class="icon">&#8595;</span> <span class="nav-text">Material Out</span></div>
+    <div class="nav-item" data-page="items"><span class="icon">&#9746;</span> <span class="nav-text">Materials</span></div>
+    <div class="nav-item" data-page="departments"><span class="icon">&#9730;</span> <span class="nav-text">Departments</span></div>
+    <div class="nav-item" data-page="categories"><span class="icon">&#9776;</span> <span class="nav-text">Categories</span></div>
+    <div class="nav-item" data-page="vendors"><span class="icon">&#127970;</span> <span class="nav-text">Vendors</span></div>
+    <div class="nav-item" data-page="employees"><span class="icon">&#128101;</span> <span class="nav-text">Employees</span></div>
+    <div class="nav-item" data-page="stock"><span class="icon">&#9783;</span> <span class="nav-text">Stock Report</span></div>
+    <div class="nav-item" data-page="expiry"><span class="icon">&#9200;</span> <span class="nav-text">Expiry Tracker</span> <span class="badge" id="expiryBadge">0</span></div>
+    <div class="nav-item" data-page="forecast"><span class="icon">&#128200;</span> <span class="nav-text">Forecasting</span> <span class="badge" id="forecastBadge">0</span></div>
+    <div class="nav-item" data-page="scanner"><span class="icon">&#9807;</span> <span class="nav-text">Scanner</span></div>
+    <div class="nav-item" data-page="returns"><span class="icon">&#128260;</span> <span class="nav-text">Returns</span> <span class="badge" id="returnBadge">0</span></div>
+    <div class="nav-item" data-page="orders"><span class="icon">&#128230;</span> <span class="nav-text">Orders</span></div>
+    <div class="nav-item" data-page="demands"><span class="icon">&#128221;</span> <span class="nav-text">Demands</span> <span class="badge" id="demandBadge">0</span></div>
+    <div class="nav-item" data-page="reports"><span class="icon">&#128202;</span> <span class="nav-text">Reports &amp; KPI</span></div>
+    <div class="nav-item" data-page="audit"><span class="icon">&#9776;</span> <span class="nav-text">Audit Log</span></div>
+    <div class="nav-item" data-page="history"><span class="icon">&#8635;</span> <span class="nav-text">History</span></div>
     <div class="nav-divider"></div>
-    <div class="nav-item" data-page="admins"><span class="icon">&#128101;</span> Admin Users</div>
-    <div class="nav-item" data-page="settings"><span class="icon">&#9881;</span> Settings</div>
-    <div class="nav-item logout" data-page="logout"><span class="icon">&#8592;</span> Logout</div>
+    <div class="nav-item" data-page="admins"><span class="icon">&#128101;</span> <span class="nav-text">Admin Users</span></div>
+    <div class="nav-item" data-page="settings"><span class="icon">&#9881;</span> <span class="nav-text">Settings</span></div>
+    <div class="nav-item logout" data-page="logout"><span class="icon">&#8592;</span> <span class="nav-text">Logout</span></div>
   </nav>
 </div>
 
@@ -282,34 +282,34 @@ textarea.form-control{resize:vertical;min-height:60px}
     <!-- MATERIAL IN -->
     <div class="page" id="page-material-in">
       <div class="card">
-        <div class="card-header"><h2>Record Material Incoming <span class="badge badge-stock" style="font-size:10px">NABH: MRN Required</span></h2></div>
+        <div class="card-header"><h2 data-i18n="recordMaterialIn">Record Material Incoming <span class="badge badge-stock" style="font-size:10px" data-i18n="nabhMrmRequired">NABH: MRN Required</span></h2></div>
         <div class="card-body">
-          <div class="flex gap-8 mb-16 no-print"><button class="btn btn-outline btn-sm" onclick="openScannerFor('in')">&#9807; Scan Barcode/QR</button><span style="font-size:11px;color:var(--gray-500)">Scan to auto-fill material</span></div>
+          <div class="flex gap-8 mb-16 no-print"><button class="btn btn-outline btn-sm" onclick="openScannerFor('in')" data-i18n="scanBarcode">&#9807; Scan Barcode/QR</button><span style="font-size:11px;color:var(--gray-500)" data-i18n="scanAutoFill">Scan to auto-fill material</span></div>
           <form id="formIn">
             <div class="form-row-3">
-              <div class="form-group"><label>Department *</label><select class="form-control" id="inDepartment" required></select></div>
-              <div class="form-group"><label>Material *</label><select class="form-control" id="inItem" required onchange="showItemStockByDeptIn()"></select></div>
-              <div class="form-group"><label>MRN # (Auto)</label><input class="form-control" id="inMRN" readonly style="background:var(--gray-100)"></div>
+              <div class="form-group"><label data-i18n="dept">Department *</label><select class="form-control" id="inDepartment" required></select></div>
+              <div class="form-group"><label data-i18n="material">Material *</label><select class="form-control" id="inItem" required onchange="showItemStockByDeptIn()"></select></div>
+              <div class="form-group"><label data-i18n="mrnAuto">MRN # (Auto)</label><input class="form-control" id="inMRN" readonly style="background:var(--gray-100)"></div>
             </div>
             <div id="inStockInfo" style="margin-bottom:10px;font-size:11px"></div>
             <div class="form-row-4">
-              <div class="form-group"><label>Quantity *</label><input type="number" class="form-control" id="inQty" min="0.01" step="0.01" required></div>
-              <div class="form-group price-col"><label>Unit Price (₹)</label><input type="number" class="form-control" id="inPrice" min="0" step="0.01" placeholder="Cost per unit"></div>
-              <div class="form-group"><label>Batch / Lot # *</label><input class="form-control" id="inBatch" placeholder="e.g. B2024-001" required></div>
-              <div class="form-group"><label>Date</label><input type="date" class="form-control" id="inDate"></div>
+              <div class="form-group"><label data-i18n="qty">Quantity *</label><input type="number" class="form-control" id="inQty" min="0.01" step="0.01" required></div>
+              <div class="form-group price-col"><label data-i18n="unitPrice">Unit Price (₹)</label><input type="number" class="form-control" id="inPrice" min="0" step="0.01" placeholder="Cost per unit"></div>
+              <div class="form-group"><label data-i18n="batchLot">Batch / Lot # *</label><input class="form-control" id="inBatch" placeholder="e.g. B2024-001" required></div>
+              <div class="form-group"><label data-i18n="date">Date</label><input type="date" class="form-control" id="inDate"></div>
             </div>
             <div class="form-row-4">
-              <div class="form-group"><label>Quality Check *</label><select class="form-control" id="inQC"><option value="passed">Passed</option><option value="pending">Pending</option><option value="failed">Failed</option></select></div>
-              <div class="form-group"><label>Condition</label><select class="form-control" id="inCondition"><option value="normal">Normal</option><option value="quarantine">Quarantine</option></select></div>
-              <div class="form-group"><label>Supplier</label><select class="form-control" id="inSupplier"><option value="">Select vendor...</option></select></div>
-              <div class="form-group"><label>Reference (PO#)</label><input type="text" class="form-control" id="inRef" placeholder="e.g. PO-2024-001"></div>
+              <div class="form-group"><label data-i18n="qualityCheck">Quality Check *</label><select class="form-control" id="inQC"><option value="passed">Passed</option><option value="pending">Pending</option><option value="failed">Failed</option></select></div>
+              <div class="form-group"><label data-i18n="condition">Condition</label><select class="form-control" id="inCondition"><option value="normal">Normal</option><option value="quarantine">Quarantine</option></select></div>
+              <div class="form-group"><label data-i18n="supplier">Supplier</label><select class="form-control" id="inSupplier"><option value="">Select vendor...</option></select></div>
+              <div class="form-group"><label data-i18n="reference">Reference (PO#)</label><input type="text" class="form-control" id="inRef" placeholder="e.g. PO-2024-001"></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Received By</label><select class="form-control" id="inBy"></select></div>
-              <div class="form-group"><label>Verified By</label><select class="form-control" id="inVerified"><option value="">Select verifier...</option></select></div>
+              <div class="form-group"><label data-i18n="receivedBy">Received By</label><select class="form-control" id="inBy"></select></div>
+              <div class="form-group"><label data-i18n="verifiedBy">Verified By</label><select class="form-control" id="inVerified"><option value="">Select verifier...</option></select></div>
             </div>
-            <div class="form-group"><label>Notes</label><textarea class="form-control" id="inNotes" rows="2" placeholder="Additional notes..."></textarea></div>
-            <button type="submit" class="btn btn-success">Record Material In</button>
+            <div class="form-group"><label data-i18n="notes">Notes</label><textarea class="form-control" id="inNotes" rows="2" placeholder="Additional notes..."></textarea></div>
+            <button type="submit" class="btn btn-success" data-i18n="recordMaterialInBtn">Record Material In</button>
           </form>
           <div class="alert" id="alertIn"></div>
         </div>
@@ -319,26 +319,26 @@ textarea.form-control{resize:vertical;min-height:60px}
     <!-- MATERIAL OUT -->
     <div class="page" id="page-material-out">
       <div class="card">
-        <div class="card-header"><h2>Record Material Outgoing</h2></div>
+        <div class="card-header"><h2 data-i18n="recordMaterialOut">Record Material Outgoing</h2></div>
         <div class="card-body">
-          <div class="flex gap-8 mb-16 no-print"><button class="btn btn-outline btn-sm" onclick="openScannerFor('out')">&#9807; Scan Barcode/QR</button><span style="font-size:11px;color:var(--gray-500)">Scan to auto-fill material</span></div>
+          <div class="flex gap-8 mb-16 no-print"><button class="btn btn-outline btn-sm" onclick="openScannerFor('out')" data-i18n="scanBarcode">&#9807; Scan Barcode/QR</button><span style="font-size:11px;color:var(--gray-500)" data-i18n="scanAutoFill">Scan to auto-fill material</span></div>
           <form id="formOut">
             <div class="form-row">
-              <div class="form-group"><label>Department *</label><select class="form-control" id="outDepartment" required></select></div>
-              <div class="form-group"><label>Material *</label><select class="form-control" id="outItem" required onchange="showItemStockByDept()"></select></div>
+              <div class="form-group"><label data-i18n="dept">Department *</label><select class="form-control" id="outDepartment" required></select></div>
+              <div class="form-group"><label data-i18n="material">Material *</label><select class="form-control" id="outItem" required onchange="showItemStockByDept()"></select></div>
             </div>
             <div id="outStockInfo" style="margin-bottom:10px;font-size:11px"></div>
             <div class="form-row-3">
-              <div class="form-group"><label>Quantity *</label><input type="number" class="form-control" id="outQty" min="0.01" step="0.01" required></div>
-              <div class="form-group"><label>Date</label><input type="date" class="form-control" id="outDate"></div>
-              <div class="form-group"><label>Batch / Lot #</label><input class="form-control" id="outBatch" placeholder="Auto from stock"></div>
+              <div class="form-group"><label data-i18n="qty">Quantity *</label><input type="number" class="form-control" id="outQty" min="0.01" step="0.01" required></div>
+              <div class="form-group"><label data-i18n="date">Date</label><input type="date" class="form-control" id="outDate"></div>
+              <div class="form-group"><label data-i18n="batchLot">Batch / Lot #</label><input class="form-control" id="outBatch" placeholder="Auto from stock"></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Issued To</label><select class="form-control" id="outTo"></select></div>
-              <div class="form-group"><label>Issued By</label><select class="form-control" id="outBy"></select></div>
+              <div class="form-group"><label data-i18n="issuedTo">Issued To</label><select class="form-control" id="outTo"></select></div>
+              <div class="form-group"><label data-i18n="issuedBy">Issued By</label><select class="form-control" id="outBy"></select></div>
             </div>
-            <div class="form-group"><label>Purpose / Notes</label><textarea class="form-control" id="outNotes" rows="2" placeholder="Reason for issue..."></textarea></div>
-            <button type="submit" class="btn btn-danger">Record Material Out</button>
+            <div class="form-group"><label data-i18n="purposeNotes">Purpose / Notes</label><textarea class="form-control" id="outNotes" rows="2" placeholder="Reason for issue..."></textarea></div>
+            <button type="submit" class="btn btn-danger" data-i18n="recordMaterialOutBtn">Record Material Out</button>
           </form>
           <div class="alert" id="alertOut"></div>
         </div>
@@ -969,6 +969,30 @@ const TRANSLATIONS = {
     qty:'Quantity', date:'Date', purpose:'Purpose', notes:'Notes',
     appSettings:'App Settings', appName:'App Name', appLogo:'App Logo',
     languagePref:'Language Preference', save:'Save',
+    dept:'Department *', material:'Material *', mrnAuto:'MRN # (Auto)',
+    unitPrice:'Unit Price (₹)', batchLot:'Batch / Lot # *', qualityCheck:'Quality Check *',
+    condition:'Condition', reference:'Reference (PO#)', receivedBy:'Received By',
+    verifiedBy:'Verified By', recordMaterialInBtn:'Record Material In',
+    recordMaterialOutBtn:'Record Material Out', issuedTo:'Issued To', issuedBy:'Issued By',
+    purposeNotes:'Purpose / Notes', nabhMrmRequired:'NABH: MRN Required',
+    scanAutoFill:'Scan to auto-fill material',
+    stockItems:'Stock Items', transactions:'Transactions', lowStock:'Low Stock',
+    expiring:'Expiring', inventoryValue:'Inventory Value',
+    pendingFulfillment:'Pending Fulfillment', lowStockItems:'Low Stock Items',
+    itemsNeedingReorder:'Items Needing Reorder',
+    expiringWarrantyAlerts:'Expiring / Warranty Alerts',
+    departmentUsage:'Department-wise Usage',
+    topItemsByMovement:'Top 10 Items by Movement',
+    myDemands:'My Demands', myReturns:'My Returns / Replacements',
+    toReceive:'Items to Receive', myMaterialActivity:'My Material Activity',
+    materialsItems:'Materials / Items', addItem:'+ Add Material',
+    nameCol:'Name', departmentCol:'Department', categoryCol:'Category',
+    unitCol:'Unit', skuBarcode:'SKU/Barcode', priceCol:'Price',
+    supplierCol:'Supplier', storageCol:'Storage', purchaseCol:'Purchase',
+    warrantyCol:'Warranty', expiryCol:'Expiry', lifecycleCol:'Lifecycle',
+    actionsCol:'Actions', filterDept:'All Departments',
+    searchPlaceholder:'Search...',
+    allItemsStocked:'All items stocked.',
   },
   hi: {
     username:'उपयोगकर्ता नाम', password:'पासवर्ड', signIn:'साइन इन', demo:'डेमो क्रेडेंशियल्स:',
@@ -997,6 +1021,30 @@ const TRANSLATIONS = {
     qty:'मात्रा', date:'तिथि', purpose:'उद्देश्य', notes:'नोट्स',
     appSettings:'ऐप सेटिंग्स', appName:'ऐप नाम', appLogo:'ऐप लोगो',
     languagePref:'भाषा प्राथमिकता', save:'सहेजें',
+    dept:'विभाग *', material:'सामग्री *', mrnAuto:'MRN # (स्वचालित)',
+    unitPrice:'यूनिट मूल्य (₹)', batchLot:'बैच / लॉट # *', qualityCheck:'गुणवत्ता जांच *',
+    condition:'स्थिति', reference:'संदर्भ (PO#)', receivedBy:'प्राप्तकर्ता',
+    verifiedBy:'सत्यापितकर्ता', recordMaterialInBtn:'सामग्री प्रवेश रिकॉर्ड करें',
+    recordMaterialOutBtn:'सामग्री निकासी रिकॉर्ड करें', issuedTo:'जारी किया गया',
+    issuedBy:'जारीकर्ता', purposeNotes:'उद्देश्य / नोट्स', nabhMrmRequired:'NABH: MRN आवश्यक',
+    scanAutoFill:'सामग्री स्वतः भरने के लिए स्कैन करें',
+    stockItems:'स्टॉक आइटम', transactions:'लेन-देन', lowStock:'कम स्टॉक',
+    expiring:'समाप्त हो रहा', inventoryValue:'इन्वेंट्री मूल्य',
+    pendingFulfillment:'लंबित पूर्ति', lowStockItems:'कम स्टॉक आइटम',
+    itemsNeedingReorder:'पुनः ऑर्डर की आवश्यकता वाली सामग्री',
+    expiringWarrantyAlerts:'समाप्ति / वारंटी अलर्ट',
+    departmentUsage:'विभाग-वार उपयोग',
+    topItemsByMovement:'गतिविधि द्वारा शीर्ष 10 सामग्री',
+    myDemands:'मेरी मांगें', myReturns:'मेरी वापसी / प्रतिस्थापन',
+    toReceive:'प्राप्त करने योग्य सामग्री', myMaterialActivity:'मेरी सामग्री गतिविधि',
+    materialsItems:'सामग्री / आइटम', addItem:'+ सामग्री जोड़ें',
+    nameCol:'नाम', departmentCol:'विभाग', categoryCol:'श्रेणी',
+    unitCol:'इकाई', skuBarcode:'SKU/बारकोड', priceCol:'मूल्य',
+    supplierCol:'आपूर्तिकर्ता', storageCol:'भंडारण', purchaseCol:'खरीद',
+    warrantyCol:'वारंटी', expiryCol:'समाप्ति', lifecycleCol:'जीवनचक्र',
+    actionsCol:'कार्रवाइयाँ', filterDept:'सभी विभाग',
+    searchPlaceholder:'खोजें...',
+    allItemsStocked:'सभी आइटम स्टॉक में हैं।',
   },
   gu: {
     username:'વપરાશકર્તા નામ', password:'પાસવર્ડ', signIn:'સાઇન ઇન', demo:'ડેમો ક્રેડેન્શિયલ્સ:',
@@ -1025,6 +1073,30 @@ const TRANSLATIONS = {
     qty:'જથ્થો', date:'તારીખ', purpose:'હેતુ', notes:'નોંધો',
     appSettings:'એપ સેટિંગ્સ', appName:'એપ નામ', appLogo:'એપ લોગો',
     languagePref:'ભાષા પસંદગી', save:'સાચવો',
+    dept:'વિભાગ *', material:'સામગ્રી *', mrnAuto:'MRN # (સ્વચાલિત)',
+    unitPrice:'એકમ કિંમત (₹)', batchLot:'બેચ / લોટ # *', qualityCheck:'ગુણવત્તા ચકાસણી *',
+    condition:'સ્થિતિ', reference:'સંદર્ભ (PO#)', receivedBy:'પ્રાપ્તકર્તા',
+    verifiedBy:'ચકાસણીકર્તા', recordMaterialInBtn:'સામગ્રી આવક રેકોર્ડ કરો',
+    recordMaterialOutBtn:'સામગ્રી નિકાસ રેકોર્ડ કરો', issuedTo:'આપેલ',
+    issuedBy:'આપનાર', purposeNotes:'હેતુ / નોંધો', nabhMrmRequired:'NABH: MRN આવશ્યક',
+    scanAutoFill:'સામગ્રી આપોઆપ ભરવા માટે સ્કેન કરો',
+    stockItems:'સ્ટોક આઇટમ', transactions:'વ્યવહારો', lowStock:'ઓછો સ્ટોક',
+    expiring:'સમાપ્ત થઈ રહ્યું', inventoryValue:'ઇન્વેન્ટરી મૂલ્ય',
+    pendingFulfillment:'બાકી પૂર્તિ', lowStockItems:'ઓછા સ્ટોકની આઇટમ',
+    itemsNeedingReorder:'ફરી ઓર્ડરની જરૂરિયાતવાળી સામગ્રી',
+    expiringWarrantyAlerts:'સમાપ્તિ / વોરંટી ચેતવણીઓ',
+    departmentUsage:'વિભાગ-વાર ઉપયોગ',
+    topItemsByMovement:'હલનચલન દ્વારા ટોચની 10 સામગ્રી',
+    myDemands:'મારી માગણીઓ', myReturns:'મારી વાપસી / બદલી',
+    toReceive:'પ્રાપ્ત કરવાની સામગ્રી', myMaterialActivity:'મારી સામગ્રી પ્રવૃત્તિ',
+    materialsItems:'સામગ્રીઓ / આઇટમ', addItem:'+ સામગ્રી ઉમેરો',
+    nameCol:'નામ', departmentCol:'વિભાગ', categoryCol:'શ્રેણી',
+    unitCol:'એકમ', skuBarcode:'SKU/બારકોડ', priceCol:'કિંમત',
+    supplierCol:'સપ્લાયર', storageCol:'સંગ્રહ', purchaseCol:'ખરીદી',
+    warrantyCol:'વોરંટી', expiryCol:'સમાપ્તિ', lifecycleCol:'જીવનચક્ર',
+    actionsCol:'ક્રિયાઓ', filterDept:'બધા વિભાગો',
+    searchPlaceholder:'શોધો...',
+    allItemsStocked:'બધી આઇટમ સ્ટોકમાં છે.',
   }
 };
 function t(key){return TRANSLATIONS[APP_LANG]&&TRANSLATIONS[APP_LANG][key]?TRANSLATIONS[APP_LANG][key]:TRANSLATIONS.en[key]||key;}
@@ -1040,10 +1112,31 @@ function setLanguage(lang){
 function applyLanguage(){
   if(CURRENT_ADMIN){
     const role=CURRENT_ADMIN.role||'super_admin';
-    // HODs, admins, super_admins always see English for reports/dashboard
     if(role==='super_admin'||role==='admin'){APP_LANG='en';}
   }
-  // Apply language to UI elements that have IDs
+  // Translate elements with data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    const txt=t(key);
+    if(txt!==key)el.textContent=txt;
+  });
+  // Translate sidebar nav items
+  const navMap={
+    dashboard:'dashboard', 'material-in':'materialIn', 'material-out':'materialOut',
+    items:'materials', departments:'departments', categories:'categories',
+    vendors:'vendors', employees:'employees', stock:'stockReport',
+    expiry:'expiryTracker', forecast:'forecasting', scanner:'scanner',
+    returns:'returns', orders:'orders', demands:'demands',
+    reports:'reportsKpi', audit:'auditLog', history:'history',
+    admins:'adminUsers', settings:'settings', logout:'logout',
+  };
+  document.querySelectorAll('.nav-item[data-page]').forEach(el=>{
+    const page=el.dataset.page;
+    const key=navMap[page];
+    const txtSpan=el.querySelector('.nav-text');
+    if(key&&txtSpan)txtSpan.textContent=t(key);
+  });
+  // Translate form labels with old-style IDs (legacy)
   const lblMap={
     lblUsername:'username',lblPassword:'password',btnSignIn:'signIn',
     lblLanguage:'language',lblName:'name',lblCategory:'category',lblUnit:'unit',
@@ -1217,7 +1310,9 @@ function navigate(pageId) {
   const nav=document.querySelector('.nav-item[data-page="'+pageId+'"]');
   if (page) page.classList.add('active');
   if (nav) nav.classList.add('active');
-  document.getElementById('breadcrumb').innerHTML=nav?nav.textContent.replace(/\d+$/,'').trim():pageId;
+  const navMap={dashboard:'dashboard','material-in':'materialIn','material-out':'materialOut',items:'materials',departments:'departments',categories:'categories',vendors:'vendors',employees:'employees',stock:'stockReport',expiry:'expiryTracker',forecast:'forecasting',scanner:'scanner',returns:'returns',orders:'orders',demands:'demands',reports:'reportsKpi',audit:'auditLog',history:'history',admins:'adminUsers',settings:'settings',logout:'logout'};
+  const bcKey=navMap[pageId]||pageId;
+  document.getElementById('breadcrumb').innerHTML=nav?t(bcKey):pageId;
   if (window.innerWidth<=768) document.getElementById('sidebar').classList.remove('open');
   if (pageId==='dashboard') renderDashboard();
   else if (pageId==='stock') renderStock();
@@ -1573,21 +1668,21 @@ function renderDashboard() {
   // Role-specific stats
   if(role==='storekeeper'){
     document.getElementById('dashStats').innerHTML=
-      '<div class="stat-card blue"><div class="stat-icon">&#9783;</div><div class="stat-info"><h3>'+sd.length+'</h3><p>Stock Items</p></div></div>'+
-      '<div class="stat-card green"><div class="stat-icon">&#8635;</div><div class="stat-info"><h3>'+tt+'</h3><p>Transactions</p></div></div>'+
-      '<div class="stat-card red"><div class="stat-icon">&#9888;</div><div class="stat-info"><h3>'+ls.length+'</h3><p>Low Stock</p></div></div>'+
-      '<div class="stat-card orange"><div class="stat-icon">&#9200;</div><div class="stat-info"><h3>'+ei.length+'</h3><p>Expiring</p></div></div>';
+      '<div class="stat-card blue"><div class="stat-icon">&#9783;</div><div class="stat-info"><h3>'+sd.length+'</h3><p>'+t('stockItems')+'</p></div></div>'+
+      '<div class="stat-card green"><div class="stat-icon">&#8635;</div><div class="stat-info"><h3>'+tt+'</h3><p>'+t('transactions')+'</p></div></div>'+
+      '<div class="stat-card red"><div class="stat-icon">&#9888;</div><div class="stat-info"><h3>'+ls.length+'</h3><p>'+t('lowStock')+'</p></div></div>'+
+      '<div class="stat-card orange"><div class="stat-icon">&#9200;</div><div class="stat-info"><h3>'+ei.length+'</h3><p>'+t('expiring')+'</p></div></div>';
     // Pending fulfillments + low stock
     const pendingDemands=getDemands().filter(d=>d.status==='pending_storekeeper');
     const pendingReturns=getReturns().filter(r=>r.status==='pending_storekeeper');
     dc.innerHTML=
-      '<div class="card"><div class="card-header"><h2>Pending Fulfillment</h2></div><div class="card-body"><div class="table-wrapper"><table><thead><tr><th>Type</th><th>Requester</th><th>Item</th><th>Qty</th><th>Date</th><th>Action</th></tr></thead><tbody id="dashStorePending">'+
+      '<div class="card"><div class="card-header"><h2>'+t('pendingFulfillment')+'</h2></div><div class="card-body"><div class="table-wrapper"><table><thead><tr><th>'+t('status')+'</th><th>Requester</th><th>'+t('material')+'</th><th>'+t('qty')+'</th><th>'+t('date')+'</th><th>'+t('actions')+'</th></tr></thead><tbody id="dashStorePending">'+
       (!pendingDemands.length&&!pendingReturns.length?'<tr><td colspan="6"><div class="empty-state"><p>No pending items.</p></div></td></tr>':
-        pendingDemands.map(d=>{const i=getItem(d.itemId);return '<tr><td><span class="badge badge-stock">Demand</span></td><td>'+d.requesterName+'</td><td>'+(i?i.name:'')+'</td><td>'+d.qty+'</td><td>'+new Date(d.dateRaised).toLocaleDateString()+'</td><td><button class="btn btn-success btn-sm" onclick="navigate(\'demands\')">Fulfill</button></td></tr>';}).join('')+
-        pendingReturns.map(r=>{const i=getItem(r.itemId);return '<tr><td><span class="badge badge-orange">Return</span></td><td>'+r.empName+'</td><td>'+(i?i.name:'')+'</td><td>'+r.qty+'</td><td>'+(r.date?r.date.split('T')[0]:'')+'</td><td><button class="btn btn-success btn-sm" onclick="navigate(\'returns\')">Process</button></td></tr>';}).join(''))+
+        pendingDemands.map(d=>{const i=getItem(d.itemId);return '<tr><td><span class="badge badge-stock">'+t('demands')+'</span></td><td>'+d.requesterName+'</td><td>'+(i?i.name:'')+'</td><td>'+d.qty+'</td><td>'+new Date(d.dateRaised).toLocaleDateString()+'</td><td><button class="btn btn-success btn-sm" onclick="navigate(\'demands\')">Fulfill</button></td></tr>';}).join('')+
+        pendingReturns.map(r=>{const i=getItem(r.itemId);return '<tr><td><span class="badge badge-orange">'+t('returns')+'</span></td><td>'+r.empName+'</td><td>'+(i?i.name:'')+'</td><td>'+r.qty+'</td><td>'+(r.date?r.date.split('T')[0]:'')+'</td><td><button class="btn btn-success btn-sm" onclick="navigate(\'returns\')">Process</button></td></tr>';}).join(''))+
       '</tbody></table></div></div></div>'+
-      '<div class="card"><div class="card-header"><h2>Low Stock Items</h2></div><div class="card-body"><div class="table-wrapper"><table><thead><tr><th>Item</th><th>Dept</th><th>Qty</th><th>Status</th></tr></thead><tbody>'+
-      (!ls.length?'<tr><td colspan="4"><div class="empty-state"><p>All items stocked.</p></div></td></tr>':ls.map(s=>{const i=getItem(s.itemId),d=getDept(s.departmentId);return '<tr class="'+(s.qty<=0?'out-of-stock':'low-stock')+'"><td><strong>'+(i?i.name:'')+'</strong></td><td>'+(d?d.code:'')+'</td><td><strong>'+s.qty+'</strong> '+(i?i.unit:'')+'</td><td><span class="badge '+(s.qty<=0?'badge-out':'badge-in')+'">'+(s.qty<=0?'Out':'Low')+'</span></td></tr>';}).join(''))+
+      '<div class="card"><div class="card-header"><h2>'+t('lowStockItems')+'</h2></div><div class="card-body"><div class="table-wrapper"><table><thead><tr><th>'+t('material')+'</th><th>'+t('departmentCol')+'</th><th>'+t('qty')+'</th><th>'+t('status')+'</th></tr></thead><tbody>'+
+      (!ls.length?'<tr><td colspan="4"><div class="empty-state"><p>'+t('allItemsStocked')+'</p></div></td></tr>':ls.map(s=>{const i=getItem(s.itemId),d=getDept(s.departmentId);return '<tr class="'+(s.qty<=0?'out-of-stock':'low-stock')+'"><td><strong>'+(i?i.name:'')+'</strong></td><td>'+(d?d.code:'')+'</td><td><strong>'+s.qty+'</strong> '+(i?i.unit:'')+'</td><td><span class="badge '+(s.qty<=0?'badge-out':'badge-in')+'">'+(s.qty<=0?'Out':'Low')+'</span></td></tr>';}).join(''))+
       '</tbody></table></div></div></div>';
   }else if(role==='employee'){
     const myDemands=DATA.demands?DATA.demands.filter(d=>d.requesterId===CURRENT_ADMIN.id):[];
