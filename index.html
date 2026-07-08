@@ -1149,7 +1149,7 @@ function login() {
   CURRENT_ADMIN=a; sessionStorage.setItem('hims_admin', JSON.stringify({id:a.id}));
   document.getElementById('loginOverlay').classList.add('hidden');
   document.getElementById('headerUser').innerHTML=a.name+'<span class="role-badge">'+a.role+'</span>';
-  init();
+  init();syncFirebase();
 }
 function logout() {
   CURRENT_ADMIN=null; sessionStorage.removeItem('hims_admin');
@@ -2384,30 +2384,32 @@ function init() {
   // Periodic refresh for live data
   setInterval(()=>{renderDemands();updateDemandBadge();renderReturns();updateReturnBadge();renderStock();renderExpiry();renderForecast();renderDashboard();},5000);
 }
-if(!checkAuth()){document.getElementById('loginOverlay').classList.remove('hidden');}else{init();}
-// Firestore sync (load remote data, seed if empty, listen for real-time changes)
-(async()=>{
+function syncFirebase(){
   if(!FS_READY)return;
-  const remote=await fsLoad();
-  if(remote){
-    const rw=JSON.stringify(remote);
-    if(rw!==localStorage.getItem(DB_KEY)){
-      localStorage.setItem(DB_KEY,rw);
-      Object.assign(DATA,loadData());
-      renderAll();
+  (async()=>{
+    const remote=await fsLoad();
+    if(remote){
+      const rw=JSON.stringify(remote);
+      if(rw!==localStorage.getItem(DB_KEY)){
+        localStorage.setItem(DB_KEY,rw);
+        Object.assign(DATA,loadData());
+        renderAll();
+      }
+    } else {
+      fsSave(DATA);
     }
-  } else {
-    fsSave(DATA);
-  }
-  fsListen(rd=>{
-    const rw=JSON.stringify(rd);
-    if(rw!==localStorage.getItem(DB_KEY)){
-      localStorage.setItem(DB_KEY,rw);
-      Object.assign(DATA,loadData());
-      renderAll();
-    }
-  });
-})();
+    fsListen(rd=>{
+      if(!rd)return;
+      const rw=JSON.stringify(rd);
+      if(rw!==localStorage.getItem(DB_KEY)){
+        localStorage.setItem(DB_KEY,rw);
+        Object.assign(DATA,loadData());
+        renderAll();
+      }
+    });
+  })();
+}
+if(!checkAuth()){document.getElementById('loginOverlay').classList.remove('hidden');}else{init();syncFirebase();}
 </script>
 </body>
 </html>
