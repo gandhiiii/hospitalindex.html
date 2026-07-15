@@ -34,10 +34,10 @@ function renderUsersList() {
         var users = DB.get('users');
         var search = (document.getElementById('userSearch')?.value || '').toLowerCase();
         var filtered = users.filter(function(u) {
-            return u.fullName.toLowerCase().includes(search) ||
-                u.username.toLowerCase().includes(search) ||
-                u.email.toLowerCase().includes(search) ||
-                u.role.includes(search) ||
+            return (u.fullName || '').toLowerCase().includes(search) ||
+                (u.username || '').toLowerCase().includes(search) ||
+                (u.email || '').toLowerCase().includes(search) ||
+                (u.role || '').includes(search) ||
                 (u.department || '').toLowerCase().includes(search);
         });
         var tbody = document.getElementById('usersTableBody');
@@ -48,11 +48,11 @@ function renderUsersList() {
             var userPerms = u.permissions || [];
             var totalPerms = new Set([].concat(deptFeatures, userPerms)).size;
             return '<tr>'
-                + '<td><strong>' + u.username + '</strong></td>'
-                + '<td>' + u.fullName + '</td>'
-                + '<td>' + u.email + '</td>'
-                + '<td>' + u.phone + '</td>'
-                + '<td><span class="badge ' + APP.getRoleBadge(u.role) + '">' + u.role.toUpperCase() + '</span></td>'
+                + '<td><strong>' + (u.username || '?') + '</strong></td>'
+                + '<td>' + (u.fullName || '?') + '</td>'
+                + '<td>' + (u.email || '?') + '</td>'
+                + '<td>' + (u.phone || '?') + '</td>'
+                + '<td><span class="badge ' + APP.getRoleBadge(u.role || 'employee') + '">' + ((u.role || 'employee').toUpperCase()) + '</span></td>'
                 + '<td>' + (u.department || '-') + '</td>'
                 + '<td style="font-size:12px;"><span class="badge badge-info">' + totalPerms + ' modules</span>'
                 + (deptFeatures.length > 0 ? '<span style="color:var(--gray);display:block;">' + deptFeatures.length + ' from dept</span>' : '')
