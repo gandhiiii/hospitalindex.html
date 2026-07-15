@@ -117,7 +117,7 @@ function renderAdmContent() {
         if (topBar) topBar.style.justifyContent = 'flex-end';
         if (searchBox) searchBox.style.display = 'none';
         if (stats) stats.style.display = 'none';
-        content.innerHTML = '<div id="roomViewContainer"></div><div style="margin-top:12px;text-align:right;"><button class="btn btn-sm btn-outline" onclick="showRoomManagement()">⚙️ Manage Rooms</button></div>';
+        content.innerHTML = '<div id="roomViewContainer"></div><div style="margin-top:12px;text-align:right;"><button class="btn btn-sm btn-secondary" onclick="showRoomManagement()">⚙️ Manage Rooms</button></div>';
         renderRoomView();
     } else {
         if (topBar) topBar.style.justifyContent = '';
@@ -559,11 +559,10 @@ function showAdmForm() {
         var occupied = getOccupiedBeds(rm.roomNo);
         var totalBeds = rm.beds || ['A'];
         var avail = totalBeds.length - occupied.length;
-        if (avail > 0) {
-            roomOpts += '<option value="' + rm.roomNo + '" data-beds="' + rm.beds.join(',') + '" data-occ="' + occupied.join(',') + '">' + rm.roomNo + ' - ' + rm.category + ' (' + avail + '/' + totalBeds.length + ' free)</option>';
-        }
+        var statusLabel = avail > 0 ? avail + '/' + totalBeds.length + ' free' : 'Full';
+        roomOpts += '<option value="' + rm.roomNo + '" data-beds="' + rm.beds.join(',') + '">' + rm.roomNo + ' - ' + rm.category + ' (' + statusLabel + ')</option>';
     }
-    if (!roomOpts) roomOpts = '<option value="">No rooms available</option>';
+    if (!roomOpts) roomOpts = '<option value="">No rooms configured</option>';
 
     var form = '<form id="admForm"><div class="grid-2"><div class="form-group"><label>Patient Name *</label><input type="text" name="patientName" class="form-control" required></div><div class="form-group"><label>Patient ID / Aadhar</label><input type="text" name="patientId" class="form-control"></div><div class="form-group"><label>Age *</label><input type="number" name="age" class="form-control" required></div><div class="form-group"><label>Gender *</label><select name="gender" class="form-control" required><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div><div class="form-group"><label>Contact Phone *</label><input type="text" name="phone" class="form-control" required></div><div class="form-group"><label>Emergency Contact</label><input type="text" name="emergencyContact" class="form-control"></div><div class="form-group"><label>Room *</label><select name="roomNo" id="admRoomSelect" class="form-control" onchange="updateAdmBedOptions()" required>' + roomOpts + '</select></div><div class="form-group"><label>Bed *</label><select name="bedId" id="admBedSelect" class="form-control" required></select></div><div class="form-group"><label>Doctor Name *</label><input type="text" name="doctorName" class="form-control" required></div><div class="form-group"><label>Admission Type *</label><select name="type" class="form-control" required><option value="regular">Regular</option><option value="emergency">Emergency</option><option value="icu">ICU</option></select></div><div class="form-group"><label>Admission Date *</label><input type="date" name="admissionDate" class="form-control" value="' + new Date().toISOString().split('T')[0] + '" required></div></div><div class="form-group"><label>Diagnosis / Reason</label><textarea name="diagnosis" class="form-control" rows="2"></textarea></div><div class="form-group"><label>Notes</label><textarea name="notes" class="form-control" rows="2"></textarea></div></form>';
     openFormModal('New Admission', form, 'saveAdm()');
@@ -577,8 +576,6 @@ function updateAdmBedOptions() {
     var selectedOption = roomSelect.options[roomSelect.selectedIndex];
     if (!selectedOption || !selectedOption.value) { bedSelect.innerHTML = '<option value="">Select room first</option>'; return; }
     var beds = (selectedOption.getAttribute('data-beds') || 'A').split(',');
-    var occStr = selectedOption.getAttribute('data-occ') || '';
-    var occupiedBeds = occStr ? occStr.split(',') : [];
     var roomNo = selectedOption.value;
     var adms = DB.get('admissions') || [];
     var occupied = [];

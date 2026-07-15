@@ -40,6 +40,8 @@ a { text-decoration: none; color: var(--primary); }
 .btn-danger:hover { background: #d33426; }
 .btn-warning { background: var(--warning); color: var(--dark); }
 .btn-warning:hover { background: #e5aa00; }
+.btn-secondary { background: var(--gray); color: var(--white); }
+.btn-secondary:hover { background: #555; }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
 .btn-lg { padding: 12px 24px; font-size: 16px; }
 .card {
