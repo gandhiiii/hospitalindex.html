@@ -1,21 +1,31 @@
 function renderUsers(container) {
     var users = DB.get('users');
 
-    container.innerHTML = ''
-        + '<div class="flex-between mb-4">'
-        + '<div class="search-box">'
-        + '<input type="text" class="form-control" id="userSearch" placeholder="Search users..." oninput="renderUsersList()">'
-        + '</div>'
-        + '<div style="display:flex;gap:6px;align-items:center;">'
-        + '<span id="userCount" style="font-size:13px;color:var(--gray);">' + users.length + ' users</span>'
-        + '<button class="btn btn-primary" onclick="showUserForm()">+ Add User</button>'
-        + (AUTH.currentUser()?.isSuperAdmin || AUTH.currentUser()?.role === 'admin'
-            ? '<button class="btn btn-danger" onclick="removeAllEmployees()">🗑️ Remove All</button>' : '')
-        + '</div></div>'
-        + '<div class="card"><div class="table-responsive"><table><thead><tr>'
-        + '<th>Username</th><th>Full Name</th><th>Email</th><th>Phone</th>'
-        + '<th>Role</th><th>Department</th><th>Permissions</th><th>Actions</th>'
-        + '</tr></thead><tbody id="usersTableBody"></tbody></table></div></div>';
+    container.innerHTML = `
+        <div class="flex-between mb-4">
+            <div class="search-box">
+                <input type="text" class="form-control" id="userSearch" placeholder="Search users..." oninput="renderUsersList()">
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+                <span id="userCount" style="font-size:13px;color:var(--gray);">${users.length} users</span>
+                <button class="btn btn-primary" onclick="showUserForm()">+ Add User</button>
+                ${AUTH.currentUser()?.isSuperAdmin || AUTH.currentUser()?.role === 'admin' ? '<button class="btn btn-danger" onclick="removeAllEmployees()">🗑️ Remove All</button>' : ''}
+            </div>
+        </div>
+        <div class="card">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th><th>Full Name</th><th>Email</th><th>Phone</th>
+                            <th>Role</th><th>Department</th><th>Permissions</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    `;
     renderUsersList();
 }
 
@@ -55,6 +65,7 @@ function renderUsersList() {
         if (countEl) countEl.textContent = users.length + ' users';
     } catch (e) {
         console.warn('renderUsersList error:', e);
+        if (typeof APP !== 'undefined' && APP.notify) APP.notify('Error loading users: ' + e.message, 'error');
         var tbody = document.getElementById('usersTableBody');
         if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Error loading users</td></tr>';
     }
