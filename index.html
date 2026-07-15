@@ -1,275 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hospital Management System</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
-body{background:#f3f4f6;min-height:100vh}
-.flex{display:flex}.hidden{display:none!important}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.flex-1{flex:1}.flex-col{flex-direction:column}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}.min-h-screen{min-height:100vh}.w-full{width:100%}.w-64{width:256px}.h-screen{height:100vh}.text-center{text-align:center}.text-4xl{font-size:36px}.text-2xl{font-size:24px}.text-xl{font-size:20px}.text-lg{font-size:18px}.text-base{font-size:16px}.text-sm{font-size:14px}.text-xs{font-size:12px}.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-medium{font-weight:500}.p-1{padding:4px}.p-2{padding:8px}.p-3{padding:12px}.p-4{padding:16px}.p-6{padding:24px}.p-8{padding:32px}.px-4{padding-left:16px;padding-right:16px}.py-2{padding-top:8px;padding-bottom:8px}.py-3{padding-top:12px;padding-bottom:12px}.m-0{margin:0}.mx-auto{margin:0 auto}.mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-4{margin-top:16px}.mt-6{margin-top:24px}.mb-1{margin-bottom:4px}.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}.mb-6{margin-bottom:24px}.mr-2{margin-right:8px}.mr-1{margin-right:4px}.overflow-y-auto{overflow-y:auto}.border{border:1px solid #d1d5db}.border-b{border-bottom:1px solid #e5e7eb}.border-r{border-right:1px solid #e5e7eb}.border-t{border-top:1px solid #e5e7eb}.border-gray{border-color:#e5e7eb}.rounded-lg{border-radius:8px}.rounded-xl{border-radius:12px}.rounded-2xl{border-radius:16px}.rounded-full{border-radius:9999px}.bg-white{background:#fff}.bg-gray-50{background:#f9fafb}.bg-gray-100{background:#f3f4f6}.bg-indigo-50{background:#eef2ff}.bg-indigo-100{background:#e0e7ff}.bg-blue-50{background:#eff6ff}.bg-blue-100{background:#dbeafe}.bg-green-50{background:#f0fdf4}.bg-green-100{background:#dcfce7}.bg-yellow-50{background:#fefce8}.bg-yellow-100{background:#fef9c3}.bg-purple-50{background:#faf5ff}.bg-purple-100{background:#f3e8ff}.bg-red-50{background:#fef2f2}.bg-red-100{background:#fee2e2}.bg-black\\/20{background:rgba(0,0,0,0.2)}.text-white{color:#fff}.text-gray-400{color:#9ca3af}.text-gray-500{color:#6b7280}.text-gray-600{color:#4b5563}.text-gray-700{color:#374151}.text-gray-800{color:#1f2937}.text-indigo-600{color:#4f46e5}.text-blue-600{color:#2563eb}.text-green-600{color:#16a34a}.text-yellow-600{color:#ca8a04}.text-purple-600{color:#9333ea}.text-red-500{color:#ef4444}.text-red-600{color:#dc2626}.shadow-lg{box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)}.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)}.cursor-pointer{cursor:pointer}.fixed{position:fixed}.inset-0{top:0;right:0;bottom:0;left:0}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}.left-0{left:0}.overflow-hidden{overflow:hidden}.relative{position:relative}.grid{display:grid}.grid-cols-1{grid-template-columns:repeat(1,1fr)}.grid-cols-2{grid-template-columns:repeat(2,1fr)}.gap-3{gap:12px}.gap-4{gap:16px}.gap-6{gap:24px}.overflow-x-auto{overflow-x:auto}.whitespace-nowrap{white-space:nowrap}
-.stat-card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;display:flex;align-items:center;gap:16px}
-.icon-box{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px}
-.badge{display:inline-block;padding:2px 10px;border-radius:9999px;font-size:12px;font-weight:500}
-.page{display:none}.page.active{display:block}
-.sidebar-link{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:8px;cursor:pointer;color:#4b5563;transition:all .15s}
-.sidebar-link:hover,.sidebar-link.active{background:#eef2ff;color:#4f46e5;font-weight:600}
-.input{width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;outline:none}
-.input:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,0.1)}
-.select{width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:#fff}
-.btn{padding:8px 20px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:background .15s}
-.btn-primary{background:#4f46e5;color:#fff}.btn-primary:hover{background:#4338ca}
-.btn-secondary{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}.btn-secondary:hover{background:#e5e7eb}
-.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{text-align:left;padding:12px 16px;background:#f9fafb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb}
-td{padding:12px 16px;border-bottom:1px solid #f3f4f6;color:#374151}
-.bg-white td{background:#fff}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:50;align-items:flex-start;justify-content:center;padding-top:60px}
-.modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:12px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
-.table-wrap{overflow-x:auto;background:#fff;border-radius:12px;border:1px solid #e5e7eb}
-.toast{position:fixed;bottom:24px;right:24px;background:#1f2937;color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:100;opacity:0;transition:all .3s;pointer-events:none}
-.toast.show{opacity:1}.login-bg{background:linear-gradient(135deg,#667eea,#764ba2)}
-@media(max-width:1023px){.sidebar{position:fixed;inset:0;z-index:40;transform:translateX(-100%);transition:transform .3s;background:#fff;width:256px}.sidebar.open{transform:translateX(0)}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System - Login</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--light-gray); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .reset-section { display: none; }
+        .reset-section.active { display: block; }
+        .login-logo { font-size: 36px; text-align: center; margin-bottom: 8px; }
+    </style>
 </head>
 <body>
-<div id="app">
-<!-- Login -->
-<div id="page-login" class="page active">
-<div class="flex items-center justify-center min-h-screen p-4 login-bg">
-<div class="bg-white rounded-2xl shadow-2xl w-full p-8" style="max-width:420px">
-<div class="text-center mb-6"><div class="text-4xl mb-2">&#127973;</div><h1 class="text-2xl font-bold text-gray-800">Hospital Management</h1><p class="text-sm text-gray-500 mt-1">Sign in to your account</p></div>
-<form id="loginForm">
-<div class="mb-3"><label class="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" id="loginEmail" class="input" placeholder="admin@hospital.com" required></div>
-<div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Password</label><input type="password" id="loginPassword" class="input" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" required></div>
-<p id="loginError" class="text-red-500 text-sm mb-3 hidden">Invalid email or password</p>
-<button type="submit" class="btn btn-primary w-full py-3 text-base">Sign In</button>
-</form>
-<p class="text-center text-xs text-gray-400 mt-4">Demo: admin@hospital.com / admin123</p>
-</div></div></div>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-logo">🏥</div>
+            <h1>Hospital Management</h1>
+            <p class="subtitle">Admin Login Portal</p>
 
-<!-- App -->
-<div id="page-app" class="page">
-<div class="flex h-screen overflow-hidden">
-<div id="sidebarOverlay" class="fixed inset-0 bg-black/20 z-30 hidden" onclick="toggleSidebar()"></div>
-<aside id="sidebar" class="sidebar flex flex-col border-r border-gray overflow-y-auto">
-<div class="p-4 border-b border-gray flex items-center justify-between">
-<div><h1 class="text-lg font-bold text-indigo-600">&#127973; HMS</h1><p class="text-xs text-gray-500">Hospital Management</p></div>
-<button class="p-1 rounded-lg hover-bg-gray-100" onclick="toggleSidebar()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-</div>
-<nav class="p-3 flex-1">
-<div class="sidebar-link active" onclick="go('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</div>
-<div class="sidebar-link" onclick="go('patients')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Patients</div>
-<div class="sidebar-link" onclick="go('inventory')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Inventory</div>
-<div class="sidebar-link" onclick="go('departments')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Departments</div>
-<div class="sidebar-link" onclick="go('tasks')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tasks</div>
-<div id="navUsers" class="sidebar-link hidden" onclick="go('users')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Users</div>
-</nav>
-<div class="p-3 border-t border-gray">
-<div class="flex items-center gap-3 mb-2">
-<div id="userAvatar" class="flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 font-semibold" style="width:36px;height:36px;font-size:14px">A</div>
-<div><p id="userName" class="text-sm font-medium">Admin</p><p id="userRole" class="text-xs text-gray-500">ADMIN</p></div>
-</div>
-<button onclick="logout()" class="btn btn-secondary w-full text-xs">Logout</button>
-</div></aside>
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUser" class="form-control" placeholder="Enter username" value="admin">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPass" class="form-control" placeholder="Enter password" value="admin123">
+                </div>
+                <button class="btn btn-primary btn-lg" style="width:100%;" onclick="handleLogin()">
+                    Sign In
+                </button>
+                <div class="login-footer">
+                    <a href="#" onclick="showReset()" style="font-size:13px;">Forgot Password? Reset Here</a>
+                </div>
+                <div id="loginError" style="color:var(--danger);font-size:13px;margin-top:8px;text-align:center;"></div>
+            </div>
 
-<div class="flex-1 flex flex-col min-w-0">
-<header class="bg-white border-b border-gray p-3 flex items-center gap-3">
-<button onclick="toggleSidebar()" class="p-2 rounded-lg hover-bg-gray-100">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-</button>
-<h1 class="text-sm font-semibold text-gray-700">&#127973; HMS</h1>
-</header>
-<main class="flex-1 overflow-y-auto p-4 p-lg-6">
+            <div id="resetForm" class="reset-section">
+                <h3 style="margin-bottom:8px;">Reset Password</h3>
+                <p style="font-size:13px;color:var(--gray);margin-bottom:16px;">
+                    Enter your username, email, or phone number. Reset link will be sent to your registered email & mobile.
+                </p>
+                <div class="form-group">
+                    <label>Username / Email / Phone</label>
+                    <input type="text" id="resetIdentifier" class="form-control" placeholder="Enter username, email or phone">
+                </div>
+                <button class="btn btn-primary btn-lg" style="width:100%;" onclick="handleResetRequest()">
+                    Send Reset Link
+                </button>
+                <div class="login-footer">
+                    <a href="#" onclick="showLogin()" style="font-size:13px;">Back to Login</a>
+                </div>
+                <div id="resetResult" style="font-size:13px;margin-top:8px;text-align:center;"></div>
+                <div id="resetLinkBox" style="display:none;margin-top:12px;padding:12px;background:#f0f8ff;border-radius:8px;border:1px solid #c2d7f8;">
+                    <p style="font-size:13px;margin-bottom:8px;"><strong>Reset Token Sent!</strong></p>
+                    <div id="resetLinkDisplay" style="font-size:12px;word-break:break-all;background:white;padding:8px;border-radius:4px;"></div>
+                    <div style="margin-top:12px;">
+                        <label>New Password</label>
+                        <input type="password" id="newPassword" class="form-control" placeholder="Enter new password" style="margin-bottom:8px;">
+                        <button class="btn btn-success" style="width:100%;" onclick="handlePasswordReset()">Set New Password</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/data.js"></script>
+    <script>
+        let currentResetToken = null;
 
-<!-- Dashboard -->
-<div id="page-dashboard" class="page active">
-<h2 class="text-xl font-semibold mb-4">Dashboard</h2>
-<div class="grid grid-cols-1 gap-3 mb-4" id="statsContainer" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"></div>
-<div class="grid grid-cols-1 gap-4" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
-<div class="card"><h3 class="font-semibold mb-3">Recent Patients</h3><div id="recentPatients" class="text-sm text-gray-500"></div></div>
-<div class="card"><h3 class="font-semibold mb-3">Low Stock Items</h3><div id="lowStockItems" class="text-sm text-gray-500"></div></div>
-</div></div>
+        function handleLogin() {
+            const username = document.getElementById('loginUser').value.trim();
+            const password = document.getElementById('loginPass').value.trim();
+            if (!username || !password) {
+                document.getElementById('loginError').textContent = 'Please enter username and password';
+                return;
+            }
+            try {
+                const result = AUTH.login(username, password);
+                if (result.success) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    document.getElementById('loginError').textContent = result.message;
+                }
+            } catch (e) {
+                document.getElementById('loginError').textContent = 'Error: ' + e.message;
+            }
+        }
 
-<!-- Patients -->
-<div id="page-patients" class="page">
-<div class="flex items-center justify-between mb-3"><h2 class="text-xl font-semibold">Patients</h2><button onclick="openModal('patient')" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Patient</button></div>
-<div class="table-wrap" id="patientsContainer"></div></div>
+        document.getElementById('loginPass').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleLogin();
+        });
+        document.getElementById('loginUser').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleLogin();
+        });
 
-<!-- Inventory -->
-<div id="page-inventory" class="page">
-<div class="flex items-center justify-between mb-3"><h2 class="text-xl font-semibold">Inventory</h2><button onclick="openModal('inventory')" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Item</button></div>
-<div class="table-wrap" id="inventoryContainer"></div></div>
+        function showReset() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('resetForm').classList.add('active');
+            document.getElementById('resetResult').textContent = '';
+            document.getElementById('resetLinkBox').style.display = 'none';
+        }
 
-<!-- Departments -->
-<div id="page-departments" class="page">
-<div class="flex items-center justify-between mb-3"><h2 class="text-xl font-semibold">Departments</h2><button onclick="openModal('department')" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Department</button></div>
-<div class="table-wrap" id="departmentsContainer"></div></div>
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('resetForm').classList.remove('active');
+            document.getElementById('loginError').textContent = '';
+        }
 
-<!-- Tasks -->
-<div id="page-tasks" class="page">
-<div class="flex items-center justify-between mb-3"><h2 class="text-xl font-semibold">Tasks</h2><button onclick="openModal('task')" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task</button></div>
-<div class="table-wrap" id="tasksContainer"></div></div>
+        function handleResetRequest() {
+            const identifier = document.getElementById('resetIdentifier').value.trim();
+            if (!identifier) { document.getElementById('resetResult').textContent = 'Please enter username, email or phone'; return; }
+            const result = AUTH.requestReset(identifier);
+            document.getElementById('resetResult').textContent = result.message;
+            if (result.success) {
+                document.getElementById('resetLinkBox').style.display = 'block';
+                document.getElementById('resetLinkDisplay').textContent = result.message;
+                currentResetToken = result.token;
+            }
+        }
 
-<!-- Users -->
-<div id="page-users" class="page">
-<div class="flex items-center justify-between mb-3"><h2 class="text-xl font-semibold">Users</h2><button onclick="openModal('user')" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add User</button></div>
-<div class="table-wrap" id="usersContainer"></div></div>
+        function handlePasswordReset() {
+            const newPass = document.getElementById('newPassword').value.trim();
+            if (!newPass || newPass.length < 4) {
+                document.getElementById('resetResult').textContent = 'Password must be at least 4 characters';
+                return;
+            }
+            const result = AUTH.resetPassword(currentResetToken, newPass);
+            document.getElementById('resetResult').textContent = result.message;
+            if (result.success) {
+                setTimeout(() => showLogin(), 2000);
+            }
+        }
 
-</main></div></div></div>
-
-<!-- Modal -->
-<div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
-<div class="modal">
-<div class="flex items-center justify-between mb-4"><h3 id="modalTitle" class="text-lg font-semibold"></h3><button onclick="closeModal()" class="p-1 cursor-pointer" style="border:none;background:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<form id="modalForm" onsubmit="handleFormSubmit(event)">
-<div id="modalBody"></div>
-<div class="flex justify-end gap-3 pt-2"><button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
-</form></div></div>
-
-<div id="toast" class="toast"></div>
-
-<script>
-var DB={
-get:function(k){try{return JSON.parse(localStorage.getItem('hms_'+k))}catch(e){return null}},
-set:function(k,v){localStorage.setItem('hms_'+k,JSON.stringify(v))},
-seed:function(){if(this.get('_seeded'))return;
-this.set('users',[{id:1,name:'Admin User',email:'admin@hospital.com',password:'admin123',mobile:'9999999999',role:'admin',designation:'Administrator',isActive:true},{id:2,name:'Employee One',email:'employee@hospital.com',password:'emp123',mobile:'8888888888',role:'employee',designation:'Nurse',isActive:true}]);
-this.set('departments',[{id:1,name:'Emergency',category:'Clinical',floor:'Ground'},{id:2,name:'Radiology',category:'Clinical',floor:'1st'},{id:3,name:'Pharmacy',category:'Support',floor:'Ground'}]);
-this.set('patients',[{id:1,name:'John Doe',age:45,gender:'Male',contact:'9876543210',disease:'Pneumonia',doctor:'Dr. Smith',room:'101',status:'Admitted',admitted:'2026-07-10'},{id:2,name:'Jane Smith',age:32,gender:'Female',contact:'8765432109',disease:'Fracture',doctor:'Dr. Jones',room:'205',status:'Admitted',admitted:'2026-07-12'},{id:3,name:'Bob Wilson',age:58,gender:'Male',contact:'7654321098',disease:'Diabetes',doctor:'Dr. Smith',room:'310',status:'Discharged',admitted:'2026-07-05'},{id:4,name:'Alice Brown',age:28,gender:'Female',contact:'6543210987',disease:'Appendicitis',doctor:'Dr. Jones',room:'108',status:'Admitted',admitted:'2026-07-14'}]);
-this.set('inventory',[{id:1,name:'Paracetamol 500mg',category:'Medicine',quantity:500,unit:'tablets',threshold:100,price:2},{id:2,name:'Syringes 5ml',category:'Equipment',quantity:200,unit:'pieces',threshold:50,price:5},{id:3,name:'Bandages',category:'Supplies',quantity:300,unit:'rolls',threshold:100,price:15},{id:4,name:'Amoxicillin 250mg',category:'Medicine',quantity:80,unit:'capsules',threshold:100,price:8},{id:5,name:'Gloves (Box)',category:'Supplies',quantity:45,unit:'boxes',threshold:30,price:120}]);
-this.set('tasks',[{id:1,title:'Clean Emergency Room',description:'Deep clean ER',assignedTo:'Employee One',priority:'High',status:'Pending',dueDate:'2026-07-16'},{id:2,title:'Restock Pharmacy',description:'Reorder low medicines',assignedTo:'Employee One',priority:'Medium',status:'In Progress',dueDate:'2026-07-18'},{id:3,title:'Patient Round',description:'Morning check on all patients',assignedTo:'Employee One',priority:'High',status:'Completed',dueDate:'2026-07-15'}]);
-this.set('_seeded',true);}};DB.seed();
-
-var user=null,editId=null,mType='';
-
-document.getElementById('loginForm').onsubmit=function(e){
-e.preventDefault();
-var email=document.getElementById('loginEmail').value.trim();
-var pwd=document.getElementById('loginPassword').value;
-var users=DB.get('users')||[];
-var u=users.find(function(x){return x.email===email&&x.password===pwd&&x.isActive});
-if(!u){document.getElementById('loginError').classList.remove('hidden');return;}
-user=u;
-document.getElementById('loginError').classList.add('hidden');
-document.getElementById('loginEmail').value='';
-document.getElementById('loginPassword').value='';
-enterApp();};
-
-function logout(){user=null;hide('page-app');show('page-login');}
-function enterApp(){
-hide('page-login');show('page-app');
-document.getElementById('userAvatar').textContent=user.name.charAt(0).toUpperCase();
-document.getElementById('userName').textContent=user.name;
-document.getElementById('userRole').textContent=user.role.toUpperCase();
-var nu=document.getElementById('navUsers');
-if(user.role==='admin')nu.classList.remove('hidden');else nu.classList.add('hidden');
-go('dashboard');}
-
-function show(id){document.getElementById(id).classList.add('active');}
-function hide(id){document.getElementById(id).classList.remove('active');}
-
-function go(page){
-document.querySelectorAll('.page[id^="page-"]').forEach(function(p){p.classList.remove('active')});
-show('page-'+page);
-document.querySelectorAll('.sidebar-link').forEach(function(l){l.classList.remove('active')});
-document.querySelectorAll('.sidebar-link').forEach(function(l){
-if(l.textContent.trim().toLowerCase().indexOf(page==='dashboard'?'dashboard':page)>-1)l.classList.add('active')});
-if(window.innerWidth<1024){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.add('hidden');}
-renderPage(page);}
-
-function toggleSidebar(){
-var s=document.getElementById('sidebar');
-var o=document.getElementById('sidebarOverlay');
-s.classList.toggle('open');o.classList.toggle('hidden');}
-
-function renderPage(p){
-switch(p){
-case'dashboard':renderDashboard();break;
-case'patients':renderTable('patients',['Name','Age','Gender','Disease','Doctor','Room','Status','Admitted','Actions']);break;
-case'inventory':renderTable('inventory',['Name','Category','Quantity','Unit','Threshold','Price','Actions']);break;
-case'departments':renderTable('departments',['Name','Category','Floor','Actions']);break;
-case'tasks':renderTable('tasks',['Title','Assigned To','Priority','Status','Due Date','Actions']);break;
-case'users':renderTable('users',['Name','Email','Role','Designation','Status','Actions']);break;}}
-
-function renderDashboard(){
-var pts=DB.get('patients')||[],inv=DB.get('inventory')||[],tsk=DB.get('tasks')||[],dep=DB.get('departments')||[];
-document.getElementById('statsContainer').innerHTML=
-'<div class="stat-card"><div class="icon-box bg-blue-50 text-blue-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><p class="text-2xl font-bold">'+pts.length+'</p><p class="text-sm text-gray-500">Patients</p></div></div>'+
-'<div class="stat-card"><div class="icon-box bg-green-50 text-green-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div><p class="text-2xl font-bold">'+inv.length+'</p><p class="text-sm text-gray-500">Items</p></div></div>'+
-'<div class="stat-card"><div class="icon-box bg-yellow-50 text-yellow-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div><p class="text-2xl font-bold">'+tsk.length+'</p><p class="text-sm text-gray-500">Tasks</p></div></div>'+
-'<div class="stat-card"><div class="icon-box bg-purple-50 text-purple-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div><p class="text-2xl font-bold">'+dep.length+'</p><p class="text-sm text-gray-500">Departments</p></div></div>';
-var r=pts.slice(-3).reverse();
-document.getElementById('recentPatients').innerHTML=r.length?r.map(function(p){return'<div class="flex justify-between py-2 border-b border-gray" style="border-bottom-width:1px"><span>'+p.name+'</span><span class="badge '+(p.status==='Admitted'?'badge-green':'badge-blue')+'">'+p.status+'</span></div>'}).join(''):'<p>No patients</p>';
-var ls=inv.filter(function(i){return i.quantity<=i.threshold});
-document.getElementById('lowStockItems').innerHTML=ls.length?ls.map(function(i){return'<div class="flex justify-between py-2 border-b border-gray" style="border-bottom-width:1px"><span>'+i.name+'</span><span class="text-red-500 font-medium">'+i.quantity+' '+i.unit+'</span></div>'}).join(''):'<p>All items well stocked</p>';}
-
-function renderTable(type,headers){
-var data=DB.get(type)||[];
-var c=document.getElementById(type+'Container');
-if(!data.length){c.innerHTML='<div class="p-8 text-center text-gray-400">No '+type+' found</div>';return;}
-c.innerHTML='<table><thead><tr>'+headers.map(function(h){return'<th>'+h+'</th>'}).join('')+'</tr></thead><tbody>'+data.map(function(item){return'<tr>'+getRow(type,item)+'</tr>'}).join('')+'</tbody></table>';}
-
-function getRow(type,item){
-switch(type){
-case'patients':return'<td>'+item.name+'</td><td>'+item.age+'</td><td>'+item.gender+'</td><td>'+item.disease+'</td><td>'+item.doctor+'</td><td>'+item.room+'</td><td><span class="badge '+(item.status==='Admitted'?'badge-green':'badge-blue')+'">'+item.status+'</span></td><td class="text-sm text-gray-500">'+item.admitted+'</td><td><button onclick="editItem(\'patients\','+item.id+')" class="text-indigo-600" style="border:none;background:none;cursor:pointer">&#9998;</button> <button onclick="deleteItem(\'patients\','+item.id+')" class="text-red-500" style="border:none;background:none;cursor:pointer">&#10005;</button></td>';
-case'inventory':return'<td>'+item.name+'</td><td>'+item.category+'</td><td class="'+(item.quantity<=item.threshold?'text-red-500 font-bold':'')+'">'+item.quantity+'</td><td>'+item.unit+'</td><td>'+item.threshold+'</td><td>$'+item.price+'</td><td><button onclick="editItem(\'inventory\','+item.id+')" class="text-indigo-600" style="border:none;background:none;cursor:pointer">&#9998;</button> <button onclick="deleteItem(\'inventory\','+item.id+')" class="text-red-500" style="border:none;background:none;cursor:pointer">&#10005;</button></td>';
-case'departments':return'<td>'+item.name+'</td><td>'+item.category+'</td><td>'+item.floor+'</td><td><button onclick="editItem(\'departments\','+item.id+')" class="text-indigo-600" style="border:none;background:none;cursor:pointer">&#9998;</button> <button onclick="deleteItem(\'departments\','+item.id+')" class="text-red-500" style="border:none;background:none;cursor:pointer">&#10005;</button></td>';
-case'tasks':var pb=item.priority==='High'?'badge-red':item.priority==='Medium'?'badge-yellow':'badge-blue';var sb=item.status==='Completed'?'badge-green':item.status==='In Progress'?'badge-yellow':'badge-red';return'<td>'+item.title+'</td><td>'+item.assignedTo+'</td><td><span class="badge '+pb+'">'+item.priority+'</span></td><td><span class="badge '+sb+'">'+item.status+'</span></td><td>'+item.dueDate+'</td><td><button onclick="editItem(\'tasks\','+item.id+')" class="text-indigo-600" style="border:none;background:none;cursor:pointer">&#9998;</button> <button onclick="deleteItem(\'tasks\','+item.id+')" class="text-red-500" style="border:none;background:none;cursor:pointer">&#10005;</button></td>';
-case'users':return'<td>'+item.name+'</td><td>'+item.email+'</td><td><span class="badge badge-blue">'+item.role+'</span></td><td>'+item.designation+'</td><td><span class="badge '+(item.isActive?'badge-green':'badge-red')+'">'+(item.isActive?'Active':'Inactive')+'</span></td><td><button onclick="editItem(\'users\','+item.id+')" class="text-indigo-600" style="border:none;background:none;cursor:pointer">&#9998;</button> <button onclick="deleteItem(\'users\','+item.id+')" class="text-red-500" style="border:none;background:none;cursor:pointer">&#10005;</button></td>';}}
-
-function openModal(type){
-mType=type;editId=null;
-document.getElementById('modalTitle').textContent='Add '+type.charAt(0).toUpperCase()+type.slice(1);
-var body=document.getElementById('modalBody');
-var us=DB.get('users')||[],dp=DB.get('departments')||[];
-var tpl={};
-tpl.patient='<div class="grid grid-cols-2 gap-3"><div><label class="block text-sm font-medium mb-1">Name</label><input class="input" id="f-name" required></div><div><label class="block text-sm font-medium mb-1">Age</label><input type="number" class="input" id="f-age" required></div><div><label class="block text-sm font-medium mb-1">Gender</label><select class="select" id="f-gender"><option>Male</option><option>Female</option><option>Other</option></select></div><div><label class="block text-sm font-medium mb-1">Contact</label><input class="input" id="f-contact"></div><div><label class="block text-sm font-medium mb-1">Disease</label><input class="input" id="f-disease"></div><div><label class="block text-sm font-medium mb-1">Doctor</label><input class="input" id="f-doctor"></div><div><label class="block text-sm font-medium mb-1">Room</label><input class="input" id="f-room"></div><div><label class="block text-sm font-medium mb-1">Status</label><select class="select" id="f-status"><option>Admitted</option><option>Discharged</option></select></div></div><div><label class="block text-sm font-medium mb-1">Admitted Date</label><input type="date" class="input" id="f-admitted"></div>';
-tpl.inventory='<div class="grid grid-cols-2 gap-3"><div><label class="block text-sm font-medium mb-1">Name</label><input class="input" id="f-name" required></div><div><label class="block text-sm font-medium mb-1">Category</label><select class="select" id="f-category"><option>Medicine</option><option>Equipment</option><option>Supplies</option></select></div><div><label class="block text-sm font-medium mb-1">Quantity</label><input type="number" class="input" id="f-quantity" required></div><div><label class="block text-sm font-medium mb-1">Unit</label><input class="input" id="f-unit"></div><div><label class="block text-sm font-medium mb-1">Threshold</label><input type="number" class="input" id="f-threshold" value="50"></div><div><label class="block text-sm font-medium mb-1">Price ($)</label><input type="number" step="0.01" class="input" id="f-price"></div></div>';
-tpl.department='<div><label class="block text-sm font-medium mb-1">Name</label><input class="input" id="f-name" required></div><div><label class="block text-sm font-medium mb-1">Category</label><select class="select" id="f-category"><option>Clinical</option><option>Support</option><option>Administrative</option></select></div><div><label class="block text-sm font-medium mb-1">Floor</label><input class="input" id="f-floor"></div>';
-tpl.task='<div><label class="block text-sm font-medium mb-1">Title</label><input class="input" id="f-title" required></div><div><label class="block text-sm font-medium mb-1">Description</label><textarea class="input" id="f-description" rows="2"></textarea></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-sm font-medium mb-1">Assign To</label><select class="select" id="f-assignedTo">'+us.filter(function(u){return u.isActive}).map(function(u){return'<option>'+u.name+'</option>'}).join('')+'</select></div><div><label class="block text-sm font-medium mb-1">Priority</label><select class="select" id="f-priority"><option>Low</option><option selected>Medium</option><option>High</option></select></div><div><label class="block text-sm font-medium mb-1">Status</label><select class="select" id="f-status"><option>Pending</option><option>In Progress</option><option>Completed</option></select></div><div><label class="block text-sm font-medium mb-1">Due Date</label><input type="date" class="input" id="f-dueDate"></div></div>';
-tpl.user='<div class="grid grid-cols-2 gap-3"><div><label class="block text-sm font-medium mb-1">Name</label><input class="input" id="f-name" required></div><div><label class="block text-sm font-medium mb-1">Email</label><input type="email" class="input" id="f-email" required></div><div><label class="block text-sm font-medium mb-1">Password</label><input type="password" class="input" id="f-password"></div><div><label class="block text-sm font-medium mb-1">Mobile</label><input class="input" id="f-mobile"></div><div><label class="block text-sm font-medium mb-1">Role</label><select class="select" id="f-role"><option>employee</option><option>admin</option></select></div><div><label class="block text-sm font-medium mb-1">Department</label><select class="select" id="f-department"><option></option>'+dp.map(function(d){return'<option>'+d.name+'</option>'}).join('')+'</select></div><div><label class="block text-sm font-medium mb-1">Designation</label><input class="input" id="f-designation"></div></div>';
-body.innerHTML=tpl[type]||'';
-document.getElementById('modalOverlay').classList.add('open');}
-
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open');editId=null;}
-
-function handleFormSubmit(e){
-e.preventDefault();
-var data={};
-document.querySelectorAll('#modalBody input,#modalBody select,#modalBody textarea').forEach(function(el){
-var key=el.id.replace('f-','');data[key]=el.type==='number'?parseFloat(el.value)||0:el.value;});
-var items=DB.get(mType)||[];
-if(editId){var idx=items.findIndex(function(i){return i.id===editId});if(idx>-1)items[idx]=Object.assign({},items[idx],data);}
-else{data.id=Date.now();if(mType==='patients'&&!data.admitted)data.admitted=new Date().toISOString().slice(0,10);items.push(data);}
-DB.set(mType,items);closeModal();renderPage(mType);toast(editId?'Updated':'Added');
-}
-
-function editItem(type,id){
-var items=DB.get(type)||[];
-var item=items.find(function(i){return i.id===id});
-if(!item)return;
-editId=id;mType=type;
-document.getElementById('modalTitle').textContent='Edit '+type.charAt(0).toUpperCase()+type.slice(1);
-openModal(type);
-setTimeout(function(){
-Object.keys(item).forEach(function(k){
-var el=document.getElementById('f-'+k);if(el){if(el.type==='number')el.value=item[k];else el.value=item[k]||'';}
-});},50);}
-
-function deleteItem(type,id){
-if(!confirm('Delete this?'))return;
-var items=DB.get(type)||[];
-items=items.filter(function(i){return i.id!==id});
-DB.set(type,items);renderPage(type);toast('Deleted');}
-
-function toast(msg){
-var t=document.getElementById('toast');
-t.textContent=msg;t.classList.add('show');
-setTimeout(function(){t.classList.remove('show')},2500);}
-</script>
+        window.addEventListener('load', function() {
+            const params = new URLSearchParams(window.location.search);
+            const resetToken = params.get('reset');
+            if (resetToken) {
+                const tokenData = AUTH.verifyResetToken(resetToken);
+                if (tokenData) {
+                    showReset();
+                    document.getElementById('resetIdentifier').value = tokenData.username;
+                    document.getElementById('resetLinkBox').style.display = 'block';
+                    document.getElementById('resetLinkDisplay').textContent = 'Token verified! You can reset your password.';
+                    currentResetToken = resetToken;
+                    document.getElementById('resetResult').textContent = 'Token verified successfully!';
+                    document.getElementById('resetResult').style.color = 'var(--secondary)';
+                } else {
+                    document.getElementById('resetResult').textContent = 'Invalid or expired token';
+                    document.getElementById('resetResult').style.color = 'var(--danger)';
+                }
+            }
+        });
+    </script>
 </body>
 </html>

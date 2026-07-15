@@ -1,0 +1,245 @@
+function renderUsers(container) {
+    const users = DB.get('users');
+
+    container.innerHTML = `
+        <div class="flex-between mb-4">
+            <div class="search-box">
+                <input type="text" class="form-control" id="userSearch" placeholder="Search users..." oninput="renderUsersList()">
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button class="btn btn-primary" onclick="showUserForm()">+ Add User</button>
+                ${AUTH.currentUser()?.isSuperAdmin || AUTH.currentUser()?.role === 'admin' ? '<button class="btn btn-danger" onclick="removeAllEmployees()">🗑️ Remove All Employees</button>' : ''}
+            </div>
+        </div>
+        <div class="card">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th><th>Full Name</th><th>Email</th><th>Phone</th>
+                            <th>Role</th><th>Department</th><th>Permissions</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    renderUsersList();
+}
+
+function renderUsersList() {
+    const users = DB.get('users');
+    const search = (document.getElementById('userSearch')?.value || '').toLowerCase();
+    const filtered = users.filter(u =>
+        u.fullName.toLowerCase().includes(search) ||
+        u.username.toLowerCase().includes(search) ||
+        u.email.toLowerCase().includes(search) ||
+        u.role.includes(search) ||
+        (u.department || '').toLowerCase().includes(search)
+    );
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = filtered.map(u => {
+        const deptFeatures = getDepartmentFeatures(u.department);
+        const inherited = deptFeatures.filter(f => !(u.permissions || []).includes(f));
+        const userPerms = u.permissions || [];
+        const totalPerms = new Set([...deptFeatures, ...userPerms]).size;
+        return `<tr>
+            <td><strong>${u.username}</strong></td>
+            <td>${u.fullName}</td>
+            <td>${u.email}</td>
+            <td>${u.phone}</td>
+            <td><span class="badge ${APP.getRoleBadge(u.role)}">${u.role.toUpperCase()}</span></td>
+            <td>${u.department || '-'}</td>
+            <td style="font-size:12px;">
+                <span class="badge badge-info">${totalPerms} modules</span>
+                ${deptFeatures.length > 0 ? `<span style="color:var(--gray);display:block;">${deptFeatures.length} from dept</span>` : ''}
+            </td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editUser('${u.id}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')" ${u.isSuperAdmin ? 'disabled' : ''}>Del</button>
+            </td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="8" class="empty-state">No users found</td></tr>';
+}
+
+function showUserForm(user) {
+    const depts = DB.get('departments').filter(d => d.active !== false);
+    const roles = ['admin', 'hod', 'storekeeper', 'employee', 'ambulance_employee'];
+    const isEdit = !!user;
+
+    const userDept = user?.department || '';
+    const deptFeatures = getDepartmentFeatures(userDept);
+    const userPerms = user?.permissions || [];
+
+    const form = `
+        <form id="userForm">
+            <input type="hidden" name="id" value="${user?.id || ''}">
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" name="username" class="form-control" value="${user?.username || ''}" ${isEdit ? 'readonly' : ''} required>
+                </div>
+                <div class="form-group">
+                    <label>${isEdit ? 'New Password (leave blank to keep)' : 'Password *'}</label>
+                    <input type="text" name="password" class="form-control" value="" ${isEdit ? '' : 'required'} placeholder="${isEdit ? 'Leave blank to keep current' : ''}">
+                </div>
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" name="fullName" class="form-control" value="${user?.fullName || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="email" class="form-control" value="${user?.email || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone *</label>
+                    <input type="text" name="phone" class="form-control" value="${user?.phone || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label>Role *</label>
+                    <select name="role" class="form-control" required onchange="onRoleChange(this)">
+                        ${roles.map(r => `<option value="${r}" ${user?.role === r ? 'selected' : ''}>${r.replace('_',' ').toUpperCase()}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Department *</label>
+                    <select name="department" class="form-control" required onchange="onDeptChange(this)">
+                        <option value="">Select Department</option>
+                        ${depts.map(d => `<option value="${d.name}" ${userDept === d.name ? 'selected' : ''} data-features='${JSON.stringify(d.features || [])}'>${d.name}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Permissions</label>
+                <div style="font-size:12px;color:var(--gray);margin-bottom:8px;">
+                    <span class="badge badge-info">Inherited from department</span> = auto-granted based on department feature rights.
+                    <span class="badge badge-success">Extra user rights</span> = manually assigned.
+                </div>
+                <div class="permission-grid" id="permissionsGrid">
+                    ${renderPermissionCheckboxes(deptFeatures, userPerms)}
+                </div>
+            </div>
+        </form>
+    `;
+
+    openFormModal(isEdit ? 'Edit User' : 'Add New User', form, `saveUser()`, true);
+}
+
+function renderPermissionCheckboxes(deptFeatures, userPerms) {
+    const allFeatures = [
+        'dashboard', 'users', 'departments', 'inventory', 'gate-security',
+        'projects', 'ambulance', 'problems', 'tasks', 'complaints',
+        'room-checklist', 'admissions', 'lost-found', 'checklists', 'admin-checklists'
+    ];
+
+    const inheritedSet = new Set(deptFeatures || []);
+    const userSet = new Set(userPerms || []);
+
+    return allFeatures.map(f => {
+        const fromDept = inheritedSet.has(f);
+        const checkedByUser = userSet.has(f);
+        const checked = fromDept || checkedByUser;
+        return `<label class="permission-item" style="${fromDept ? 'background:#e8f0fe;border:1px solid #c2d7f8;' : 'background:var(--bg);'}">
+            <input type="checkbox" name="permissions" value="${f}" ${checked ? 'checked' : ''}>
+            <span>${f.replace('-', ' ')}</span>
+            ${fromDept ? '<span style="font-size:10px;color:var(--primary);margin-left:auto;">dept</span>' : ''}
+        </label>`;
+    }).join('');
+}
+
+function onDeptChange(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    let deptFeatures = [];
+    try {
+        deptFeatures = JSON.parse(selectedOption?.getAttribute('data-features') || '[]');
+    } catch(e) { deptFeatures = []; }
+
+    const grid = document.getElementById('permissionsGrid');
+    if (!grid) return;
+
+    const form = document.getElementById('userForm');
+    const currentPerms = Array.from(form.querySelectorAll('[name="permissions"]:checked')).map(cb => cb.value);
+
+    grid.innerHTML = renderPermissionCheckboxes(deptFeatures, currentPerms);
+}
+
+function onRoleChange(select) {
+    const role = select.value;
+    const grid = document.getElementById('permissionsGrid');
+    if (!grid) return;
+    const allCbs = document.querySelectorAll('[name="permissions"]');
+    if (role === 'ambulance_employee') {
+        allCbs.forEach(cb => cb.checked = cb.value === 'ambulance');
+    }
+}
+
+function saveUser() {
+    const form = document.getElementById('userForm');
+    const data = { fullName: '', username: '', password: '', email: '', phone: '', role: 'employee', department: '' };
+    form.querySelectorAll('[name]').forEach(el => {
+        if (el.name !== 'permissions') data[el.name] = el.value;
+    });
+    data.permissions = Array.from(form.querySelectorAll('[name="permissions"]:checked')).map(cb => cb.value);
+
+    if (!data.fullName || !data.username || !data.email || !data.phone) {
+        APP.notify('Please fill all required fields', 'error'); return;
+    }
+
+    const existing = DB.get('users');
+    if (data.id) {
+        const updateData = { fullName: data.fullName, email: data.email, phone: data.phone, role: data.role, department: data.department, permissions: data.permissions };
+        if (data.password) updateData.password = data.password;
+        DB.update('users', data.id, updateData);
+        APP.notify('User updated successfully', 'success');
+    } else {
+        if (!data.password) { APP.notify('Password is required', 'error'); return; }
+        if (existing.find(u => u.username === data.username)) {
+            APP.notify('Username already exists', 'error'); return;
+        }
+        DB.add('users', {
+            username: data.username, password: data.password,
+            fullName: data.fullName, email: data.email, phone: data.phone,
+            role: data.role, department: data.department, permissions: data.permissions,
+            isSuperAdmin: false
+        });
+        APP.notify('User created successfully! ID & Password: ' + data.username + ' / ' + data.password, 'success');
+    }
+    renderUsersList();
+}
+
+function editUser(id) {
+    const user = DB.getById('users', id);
+    if (user) showUserForm(user);
+}
+
+function removeAllEmployees() {
+    const user = AUTH.currentUser();
+    if (!user || (!user.isSuperAdmin && user.role !== 'admin')) {
+        APP.notify('Only admins can remove all employees', 'error');
+        return;
+    }
+    const allUsers = DB.get('users');
+    const employees = allUsers.filter(u => u.role === 'employee');
+    if (employees.length === 0) {
+        APP.notify('No employees found', 'info');
+        return;
+    }
+    confirmAction(`Remove ALL ${employees.length} employee(s)? This cannot be undone.`, () => {
+        employees.forEach(e => DB.delete('users', e.id));
+        APP.notify(`Removed ${employees.length} employee(s)`, 'success');
+        renderUsersList();
+    });
+}
+
+function deleteUser(id) {
+    const user = DB.getById('users', id);
+    if (!user || user.isSuperAdmin) { APP.notify('Cannot delete super admin', 'error'); return; }
+    confirmAction(`Delete user "${user.fullName}"?`, () => {
+        DB.delete('users', id);
+        APP.notify('User deleted', 'success');
+        renderUsersList();
+    });
+}

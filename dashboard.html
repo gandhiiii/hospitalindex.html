@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        .sidebar-logo { cursor: pointer; }
+        #ambMapContainer { height: 400px; border-radius: var(--radius); z-index: 1; }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo" onclick="Router.navigate('dashboard')">
+                <span>🏥</span> HMS
+            </div>
+            <nav class="sidebar-nav" id="sidebarNav"></nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header" id="mainHeader"></header>
+            <div class="page-content" id="pageContent"></div>
+        </main>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/modules/dashboard-module.js"></script>
+    <script src="js/modules/users.js"></script>
+    <script src="js/modules/departments.js"></script>
+    <script src="js/modules/feature-rights.js"></script>
+    <script src="js/modules/inventory.js"></script>
+    <script src="js/modules/gate-security.js"></script>
+    <script src="js/modules/phase2.js"></script>
+    <script src="js/modules/projects.js"></script>
+    <script src="js/modules/ambulance.js"></script>
+    <script src="js/modules/problems.js"></script>
+    <script src="js/modules/tasks.js"></script>
+    <script src="js/modules/complaints.js"></script>
+    <script src="js/modules/room-checklist.js"></script>
+    <script src="js/modules/admissions.js"></script>
+    <script src="js/modules/lost-found.js"></script>
+    <script src="js/modules/admin-checklist.js"></script>
+    <script src="js/modules/checklists.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => Router.init());
+    </script>
+</body>
+</html>
