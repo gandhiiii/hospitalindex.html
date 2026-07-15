@@ -538,18 +538,19 @@ const APP = {
     },
     seedData() {
         try {
-            const depts = DB.get('departments');
-            if (Array.isArray(depts) && depts.length > 0) {
-                const users = DB.get('users');
-                let usersChanged = false;
-                users.forEach(u => { if (u.department) { u.department = ''; usersChanged = true; } });
-                if (usersChanged) DB.set('users', users);
+            if (!Array.isArray(DB.get('departments')) || DB.get('departments').length === 0) {
+                DB.set('departments', []);
             }
-            DB.set('departments', []);
             const existingRights = DB.get('featureRights');
-            DB.set('tasks', []);
-            DB.set('inventory', []);
-            DB.set('inventory_receipts', []);
+            if (!Array.isArray(DB.get('tasks')) || DB.get('tasks').length === 0) {
+                DB.set('tasks', []);
+            }
+            if (!Array.isArray(DB.get('inventory')) || DB.get('inventory').length === 0) {
+                DB.set('inventory', []);
+            }
+            if (!Array.isArray(DB.get('inventory_receipts')) || DB.get('inventory_receipts').length === 0) {
+                DB.set('inventory_receipts', []);
+            }
             if (!Array.isArray(existingRights) || existingRights.length === 0) {
                 const defaultRights = ['dashboard','users','departments','inventory','gate-security',
                     'projects','ambulance','problems','tasks','complaints',
