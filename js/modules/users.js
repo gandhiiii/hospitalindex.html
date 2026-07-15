@@ -34,6 +34,7 @@ function renderUsersList() {
         var users = DB.get('users');
         var search = (document.getElementById('userSearch')?.value || '').toLowerCase();
         var filtered = users.filter(function(u) {
+            if (!u || typeof u !== 'object') return false;
             return (u.fullName || '').toLowerCase().includes(search) ||
                 (u.username || '').toLowerCase().includes(search) ||
                 (u.email || '').toLowerCase().includes(search) ||
@@ -44,6 +45,7 @@ function renderUsersList() {
         if (!tbody) { console.warn('usersTableBody not found'); return; }
 
         tbody.innerHTML = filtered.map(function(u) {
+            if (!u || typeof u !== 'object') return '';
             var deptFeatures = typeof getDepartmentFeatures === 'function' ? getDepartmentFeatures(u.department) : [];
             var userPerms = u.permissions || [];
             var totalPerms = new Set([].concat(deptFeatures, userPerms)).size;
@@ -61,8 +63,15 @@ function renderUsersList() {
                 + '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + u.id + '\')"' + (u.isSuperAdmin ? ' disabled' : '') + '>Del</button></td>'
                 + '</tr>';
         }).join('') || '<tr><td colspan="8" class="empty-state">No users found</td></tr>';
+
+        var valid = users.filter(function(u) { return u && typeof u === 'object'; });
+        if (valid.length !== users.length) {
+            DB.set('users', valid);
+            console.warn('Cleaned ' + (users.length - valid.length) + ' corrupted user entries');
+        }
+
         var countEl = document.getElementById('userCount');
-        if (countEl) countEl.textContent = users.length + ' users';
+        if (countEl) countEl.textContent = valid.length + ' users';
     } catch (e) {
         console.warn('renderUsersList error:', e);
         if (typeof APP !== 'undefined' && APP.notify) APP.notify('Error loading users: ' + e.message, 'error');
