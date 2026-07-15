@@ -5,7 +5,7 @@ const { protect, adminOnly } = require('../middleware/auth');
 
 router.get('/', protect, async (req, res) => {
   try {
-    const departments = await Department.find({ isActive: true }).populate('hod', 'name email');
+    const departments = await Department.find({ isActive: true });
     res.json(departments);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -14,7 +14,7 @@ router.get('/', protect, async (req, res) => {
 
 router.post('/', protect, adminOnly, async (req, res) => {
   try {
-    const department = await Department.create({ ...req.body, createdBy: req.user._id });
+    const department = await Department.create(req.body);
     res.status(201).json(department);
   } catch (error) {
     res.status(500).json({ message: error.message });

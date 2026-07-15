@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { userAPI } from '../services/api';
+import { authAPI, userAPI, departmentAPI } from '../services/api';
 
 const defaultPermissions = {
   inventory: { view: false, create: false, edit: false, delete: false },
@@ -14,17 +14,23 @@ const defaultPermissions = {
   projects: { view: false, create: false, edit: false },
   problems: { view: false, resolve: false, create: false },
   employees: { view: false, create: false, edit: false, delete: false },
+  floorChecklist: { view: false, create: false },
   reports: { view: false }
 };
 
 export default function Users() {
-  const { isSuperAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', mobile: '', password: '', role: 'employee', department: '', designation: '', permissions: { ...defaultPermissions } });
 
-  useEffect(() => { if (isSuperAdmin) fetchUsers(); }, [isSuperAdmin]);
+  useEffect(() => { if (isAdmin) { fetchUsers(); fetchDepartments(); } }, [isAdmin]);
+
+  const fetchDepartments = async () => {
+    try { const { data } = await departmentAPI.getAll(); setDepartments(data); } catch (err) { console.error(err); }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -39,13 +45,13 @@ export default function Users() {
       if (editingUser) {
         await userAPI.update(editingUser._id, form);
       } else {
-        await userAPI.register(form);
+        await authAPI.register(form);
       }
       setShowForm(false);
       setEditingUser(null);
       setForm({ name: '', email: '', mobile: '', password: '', role: 'employee', department: '', designation: '', permissions: { ...defaultPermissions } });
       fetchUsers();
-    } catch (err) { alert(err.response?.data?.message || 'Error'); }
+    } catch (err) { alert(err.response?.data?.message || err.message || 'Error - check console (F12)'); console.error(err); }
   };
 
   const handleEdit = (user) => {
@@ -69,7 +75,7 @@ export default function Users() {
     }));
   };
 
-  if (!isSuperAdmin) return <div className="card text-center text-gray-500 py-12">Only Super Admin can manage users</div>;
+  if (!isAdmin) return <div className="card text-center text-gray-500 py-12">Only Admin can manage users</div>;
 
   return (
     <div>
@@ -95,7 +101,12 @@ export default function Users() {
                     <option value="admin">Admin</option>
                   </select>
                 </div>
-                <div><label className="label">Department</label><input className="input" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} /></div>
+                <div><label className="label">Department</label>
+                  <select className="select" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })}>
+                    <option value="">Select Department</option>
+                    {departments.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="mb-4">
                 <label className="label mb-2">Permissions</label>

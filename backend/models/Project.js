@@ -1,21 +1,5 @@
 const mongoose = require('mongoose');
 
-const projectMilestoneSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: String,
-  dueDate: Date,
-  status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' },
-  completedAt: Date
-});
-
-const projectCostSchema = new mongoose.Schema({
-  category: { type: String, required: true },
-  estimatedAmount: { type: Number, required: true },
-  actualAmount: Number,
-  vendor: String,
-  note: String
-});
-
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
@@ -27,12 +11,10 @@ const projectSchema = new mongoose.Schema({
   endDate: Date,
   estimatedCost: Number,
   actualCost: Number,
-  milestones: [projectMilestoneSchema],
-  costs: [projectCostSchema],
+  milestones: [{ title: String, description: String, dueDate: Date, status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' } }],
+  costs: [{ category: String, estimatedAmount: Number, actualAmount: Number, vendor: String, note: String }],
   assignedTeam: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   projectHead: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  notes: String,
-  attachments: [String],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 

@@ -30,9 +30,15 @@ export function AuthProvider({ children }) {
     if (isSuperAdmin) return true;
     return user?.permissions?.[module]?.[action] === true;
   };
+  const hasModuleAccess = (module) => {
+    if (isAdmin) return true;
+    const perms = user?.permissions?.[module];
+    if (!perms) return false;
+    return Object.values(perms).some(v => v === true);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAdmin, isSuperAdmin, hasPermission }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, isAdmin, isSuperAdmin, hasPermission, hasModuleAccess }}>
       {children}
     </AuthContext.Provider>
   );

@@ -18,6 +18,7 @@ import LostFound from './pages/LostFound';
 import Projects from './pages/Projects';
 import Problems from './pages/Problems';
 import FloorChecklist from './pages/FloorChecklist';
+import Reports from './pages/Reports';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="projects" element={<Projects />} />
         <Route path="problems" element={<Problems />} />
         <Route path="floor-checklist" element={<FloorChecklist />} />
+        <Route path="reports" element={<Reports />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

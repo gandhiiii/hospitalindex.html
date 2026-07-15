@@ -5,16 +5,7 @@ const { protect } = require('../middleware/auth');
 
 router.get('/', protect, async (req, res) => {
   try {
-    const { status, category, department } = req.query;
-    const filter = {};
-    if (status) filter.status = status;
-    if (category) filter.category = category;
-    if (department) filter.department = department;
-    const problems = await ProblemSolution.find(filter)
-      .populate('reportedBy', 'name')
-      .populate('assignedTo', 'name')
-      .populate('resolvedBy', 'name')
-      .sort({ createdAt: -1 });
+    const problems = await ProblemSolution.find(req.query).populate('reportedBy', 'name').populate('resolvedBy', 'name').sort({ createdAt: -1 });
     res.json(problems);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -33,10 +24,7 @@ router.post('/', protect, async (req, res) => {
 router.put('/:id', protect, async (req, res) => {
   try {
     const updateData = { ...req.body };
-    if (req.body.status === 'resolved') {
-      updateData.resolvedBy = req.user._id;
-      updateData.resolvedAt = new Date();
-    }
+    if (req.body.status === 'resolved') { updateData.resolvedBy = req.user._id; updateData.resolvedAt = new Date(); }
     const problem = await ProblemSolution.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(problem);
   } catch (error) {

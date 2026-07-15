@@ -15,8 +15,6 @@ const userSchema = new mongoose.Schema({
   designation: { type: String, default: '' },
   employeeId: { type: String, unique: true },
   isActive: { type: Boolean, default: true },
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
   permissions: {
     inventory: { view: Boolean, create: Boolean, edit: Boolean, delete: Boolean },
     gate: { view: Boolean, approve: Boolean, create: Boolean },
@@ -29,6 +27,7 @@ const userSchema = new mongoose.Schema({
     projects: { view: Boolean, create: Boolean, edit: Boolean },
     problems: { view: Boolean, resolve: Boolean, create: Boolean },
     employees: { view: Boolean, create: Boolean, edit: Boolean, delete: Boolean },
+    floorChecklist: { view: Boolean, create: Boolean },
     reports: { view: Boolean }
   },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }

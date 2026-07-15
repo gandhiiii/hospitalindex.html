@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { protect, adminOnly, superAdminOnly } = require('../middleware/auth');
+const { protect, adminOnly } = require('../middleware/auth');
 
 router.get('/', protect, adminOnly, async (req, res) => {
   try {
@@ -22,11 +22,11 @@ router.get('/:id', protect, async (req, res) => {
   }
 });
 
-router.put('/:id', protect, superAdminOnly, async (req, res) => {
+router.put('/:id', protect, adminOnly, async (req, res) => {
   try {
-    const { name, email, mobile, role, department, designation, isActive, permissions } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+    const { name, email, mobile, role, department, designation, isActive, permissions } = req.body;
     if (name) user.name = name;
     if (email) user.email = email;
     if (mobile) user.mobile = mobile;
@@ -42,7 +42,7 @@ router.put('/:id', protect, superAdminOnly, async (req, res) => {
   }
 });
 
-router.delete('/:id', protect, superAdminOnly, async (req, res) => {
+router.delete('/:id', protect, adminOnly, async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: 'User deleted successfully' });

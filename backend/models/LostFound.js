@@ -9,7 +9,6 @@ const lostFoundSchema = new mongoose.Schema({
   dateLost: Date,
   reportedBy: String,
   reportedContact: String,
-  storedLocation: String,
   status: { type: String, enum: ['pending', 'claimed', 'disposed', 'transferred'], default: 'pending' },
   claimedBy: String,
   claimedContact: String,

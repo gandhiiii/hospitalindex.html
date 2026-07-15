@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
+const API = axios.create({ baseURL: '/api' });
 
 API.interceptors.request.use((req) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -123,7 +123,16 @@ export const floorChecklistAPI = {
 };
 
 export const dashboardAPI = {
-  getStats: () => API.get('/dashboard')
+  getStats: () => API.get('/dashboard'),
+  getWorkload: () => API.get('/dashboard/workload'),
+  getKPI: () => API.get('/dashboard/kpi')
+};
+
+export const reportAPI = {
+  getAll: () => API.get('/reports/all'),
+  getByDepartment: (name) => API.get(`/reports/department/${encodeURIComponent(name)}`),
+  getInventory: () => API.get('/reports/inventory'),
+  getDepartmentsList: () => API.get('/reports/departments-list')
 };
 
 export default API;

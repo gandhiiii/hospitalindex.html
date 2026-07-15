@@ -9,9 +9,7 @@ const taskSchema = new mongoose.Schema({
   assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   department: String,
   dueDate: Date,
-  completedAt: Date,
-  note: String,
-  attachments: [String]
+  completedAt: Date
 }, { timestamps: true });
 
 module.exports = mongoose.model('Task', taskSchema);

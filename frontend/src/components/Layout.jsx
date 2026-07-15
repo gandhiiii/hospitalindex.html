@@ -5,23 +5,24 @@ import { useAuth } from '../context/AuthContext';
 const navItems = [
   { path: '/', label: 'Dashboard', icon: '📊', admin: false },
   { path: '/users', label: 'Users', icon: '👥', admin: true },
-  { path: '/departments', label: 'Departments', icon: '🏢', admin: false },
-  { path: '/inventory', label: 'Inventory', icon: '📦', admin: false },
-  { path: '/gate', label: 'Gate Security', icon: '🚧', admin: false },
-  { path: '/ambulance', label: 'Ambulance', icon: '🚑', admin: false },
-  { path: '/tasks', label: 'Tasks', icon: '✅', admin: false },
-  { path: '/patients', label: 'Patients', icon: '👨‍⚕️', admin: false },
-  { path: '/complaints', label: 'Complaints', icon: '📝', admin: false },
-  { path: '/rooms', label: 'Room Checklist', icon: '🏠', admin: false },
-  { path: '/lost-found', label: 'Lost & Found', icon: '🔍', admin: false },
-  { path: '/projects', label: 'Projects', icon: '📋', admin: false },
-  { path: '/problems', label: 'Problems', icon: '⚠️', admin: false },
-  { path: '/floor-checklist', label: 'Floor Checklist', icon: '📋', admin: false }
+  { path: '/departments', label: 'Departments', icon: '🏢', admin: false, module: 'employees' },
+  { path: '/inventory', label: 'Inventory', icon: '📦', admin: false, module: 'inventory' },
+  { path: '/gate', label: 'Gate Security', icon: '🚧', admin: false, module: 'gate' },
+  { path: '/ambulance', label: 'Ambulance', icon: '🚑', admin: false, module: 'ambulance' },
+  { path: '/tasks', label: 'Tasks', icon: '✅', admin: false, module: 'tasks' },
+  { path: '/patients', label: 'Patients', icon: '👨‍⚕️', admin: false, module: 'patients' },
+  { path: '/complaints', label: 'Complaints', icon: '📝', admin: false, module: 'complaints' },
+  { path: '/rooms', label: 'Room Checklist', icon: '🏠', admin: false, module: 'rooms' },
+  { path: '/lost-found', label: 'Lost & Found', icon: '🔍', admin: false, module: 'lostfound' },
+  { path: '/projects', label: 'Projects', icon: '📋', admin: false, module: 'projects' },
+  { path: '/problems', label: 'Problems', icon: '⚠️', admin: false, module: 'problems' },
+  { path: '/floor-checklist', label: 'Floor Checklist', icon: '📋', admin: false, module: 'floorChecklist' },
+  { path: '/reports', label: 'Reports', icon: '📊', admin: true }
 ];
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, hasModuleAccess } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -37,7 +38,7 @@ export default function Layout() {
           <p className="text-xs text-gray-500 mt-0.5">Hospital Management</p>
         </div>
         <nav className="p-3 space-y-1">
-          {navItems.filter(item => !item.admin || isAdmin).map(item => (
+          {navItems.filter(item => (!item.admin || isAdmin) && (!item.module || isAdmin || hasModuleAccess(item.module))).map(item => (
             <NavLink key={item.path} to={item.path} end={item.path === '/'}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : 'text-gray-600'}`}
               onClick={() => setSidebarOpen(false)}>

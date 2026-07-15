@@ -1,8 +1,11 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const { seedIfEmpty } = require('./seed');
 
 dotenv.config();
 require('./config/db')();
@@ -16,6 +19,12 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Auto-seed on first run
+mongoose.connection.once('open', async () => {
+  console.log('MongoDB connected, checking seed data...');
+  await seedIfEmpty();
+});
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
@@ -32,9 +41,18 @@ app.use('/api/projects', require('./routes/projects'));
 app.use('/api/problems', require('./routes/problems'));
 app.use('/api/floor-checklist', require('./routes/floorChecklist'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/reports', require('./routes/reports'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Serve built frontend in production
+const distPath = path.join(__dirname, '../frontend/dist');
+app.use(express.static(distPath));
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) return;
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 require('./socket')(io);

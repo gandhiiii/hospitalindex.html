@@ -14,8 +14,7 @@ const problemSolutionSchema = new mongoose.Schema({
   resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   resolvedAt: Date,
   rootCause: String,
-  preventiveMeasures: String,
-  attachments: [String]
+  preventiveMeasures: String
 }, { timestamps: true });
 
 module.exports = mongoose.model('ProblemSolution', problemSolutionSchema);

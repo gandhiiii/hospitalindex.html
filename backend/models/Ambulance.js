@@ -14,19 +14,10 @@ const ambulanceSchema = new mongoose.Schema({
     address: String,
     updatedAt: Date
   },
-  destination: {
-    lat: Number,
-    lng: Number,
-    address: String
-  },
-  hospital: String,
+  destination: { lat: Number, lng: Number, address: String },
   patientName: String,
   patientCondition: String,
   departureTime: Date,
-  estimatedArrival: Date,
-  speed: { type: Number, default: 0 },
-  lastMaintenance: Date,
-  nextMaintenance: Date,
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 

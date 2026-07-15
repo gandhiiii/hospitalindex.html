@@ -7,11 +7,7 @@ const gateEntrySchema = new mongoose.Schema({
   contactNo: String,
   vehicleNo: String,
   purpose: String,
-  items: [{
-    name: String,
-    quantity: Number,
-    description: String
-  }],
+  items: [{ name: String, quantity: Number, description: String }],
   inTime: { type: Date, default: Date.now },
   outTime: Date,
   status: { type: String, enum: ['pending', 'approved', 'rejected', 'completed'], default: 'pending' },
