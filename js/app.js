@@ -167,7 +167,7 @@ function openFormModal(title, formHtml, onSave, large) {
         <div id="modalFormBody">${formHtml}</div>
         <div class="modal-footer">
             <button class="btn btn-danger" onclick="this.closest('.modal').remove()">Cancel</button>
-            <button class="btn btn-primary" onclick="(async()=>{await ${onSave};this.closest('.modal').remove()})()">Save</button>
+            <button class="btn btn-primary" onclick="(async()=>{if ((await ${onSave}) !== false) this.closest('.modal').remove()})()">Save</button>
         </div>
     `, large);
     return m;

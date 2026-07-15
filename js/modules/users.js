@@ -180,7 +180,7 @@ function saveUser() {
     data.permissions = Array.from(form.querySelectorAll('[name="permissions"]:checked')).map(cb => cb.value);
 
     if (!data.fullName || !data.username || !data.email || !data.phone) {
-        APP.notify('Please fill all required fields', 'error'); return;
+        APP.notify('Please fill all required fields', 'error'); return false;
     }
 
     const existing = DB.get('users');
@@ -190,9 +190,9 @@ function saveUser() {
         DB.update('users', data.id, updateData);
         APP.notify('User updated successfully', 'success');
     } else {
-        if (!data.password) { APP.notify('Password is required', 'error'); return; }
+        if (!data.password) { APP.notify('Password is required', 'error'); return false; }
         if (existing.find(u => u.username === data.username)) {
-            APP.notify('Username already exists', 'error'); return;
+            APP.notify('Username already exists', 'error'); return false;
         }
         DB.add('users', {
             username: data.username, password: data.password,
@@ -202,7 +202,10 @@ function saveUser() {
         });
         APP.notify('User created successfully! ID & Password: ' + data.username + ' / ' + data.password, 'success');
     }
+    var searchInput = document.getElementById('userSearch');
+    if (searchInput) searchInput.value = '';
     renderUsersList();
+    return true;
 }
 
 function editUser(id) {
