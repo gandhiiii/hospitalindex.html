@@ -230,7 +230,10 @@ function showRoomManagement() {
                 </div>
             </div>
             <div class="card" style="padding:12px;">
-                <h4 style="margin:0 0 8px 0;font-size:14px;">📋 Room List</h4>
+                <div class="flex-between" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <h4 style="margin:0;font-size:14px;">📋 Room List</h4>
+                    <button class="btn btn-sm btn-danger" onclick="removeAllRooms()">🗑️ Remove All Rooms</button>
+                </div>
                 <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
                     <table><thead><tr><th>Room</th><th>Floor</th><th>Category</th><th>Beds</th><th>Action</th></tr></thead><tbody>` + listHtml + `</tbody></table>
                 </div>
@@ -270,6 +273,17 @@ function deleteRoom(id) {
         renderRoomManagementList();
         renderRoomView();
         APP.notify('Room deleted', 'success');
+    });
+}
+
+function removeAllRooms() {
+    var rooms = getRooms();
+    if (!rooms || rooms.length === 0) { APP.notify('No rooms to remove', 'info'); return; }
+    confirmAction('Remove ALL ' + rooms.length + ' rooms? This cannot be undone.', function() {
+        DB.set('rooms', []);
+        renderRoomManagementList();
+        renderRoomView();
+        APP.notify('All rooms removed', 'success');
     });
 }
 
