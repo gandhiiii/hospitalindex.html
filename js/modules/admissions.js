@@ -1,8 +1,26 @@
 const ROOM_CATEGORIES = ['Super Deluxe', 'Deluxe Special', 'Semi Special', 'Twin', 'Triple'];
 const BED_LABELS = ['A', 'B', 'C'];
+var _roomCache = null;
+window.addEventListener('storage', function(e) { if (e.key === 'hms_rooms') _roomCache = null; });
 
 function getRooms() {
-    return DB.get('rooms') || [];
+    if (_roomCache !== null) return _roomCache;
+    try {
+        var raw = localStorage.getItem('hms_rooms');
+        _roomCache = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        _roomCache = [];
+    }
+    return _roomCache;
+}
+
+function saveRooms(rooms) {
+    _roomCache = rooms;
+    try {
+        localStorage.setItem('hms_rooms', JSON.stringify(rooms));
+    } catch (e) {
+        console.warn('saveRooms error:', e);
+    }
 }
 
 function getBedsByRoom(roomNo) {
@@ -241,7 +259,7 @@ function addRoom() {
         if (rooms[r].roomNo === roomNo) { APP.notify('Room ' + roomNo + ' already exists', 'error'); return; }
     }
     rooms.push({ id: 'room_' + roomNo + '_' + Date.now(), roomNo: roomNo, floor: floor, category: category, beds: beds });
-    DB.set('rooms', rooms);
+    saveRooms(rooms);
     renderRoomManagementList();
     renderRoomView();
     APP.notify('Room ' + roomNo + ' added', 'success');
@@ -254,7 +272,7 @@ function deleteRoom(id) {
         for (var i = 0; i < rooms.length; i++) {
             if (rooms[i].id !== id) updated.push(rooms[i]);
         }
-        DB.set('rooms', updated);
+        saveRooms(updated);
         renderRoomManagementList();
         renderRoomView();
         APP.notify('Room deleted', 'success');
@@ -265,7 +283,7 @@ function removeAllRooms() {
     var rooms = getRooms();
     if (!rooms || rooms.length === 0) { APP.notify('No rooms to remove', 'info'); return; }
     confirmAction('Remove ALL ' + rooms.length + ' rooms? This cannot be undone.', function() {
-        DB.set('rooms', []);
+        saveRooms([]);
         renderRoomManagementList();
         renderRoomView();
         APP.notify('All rooms removed', 'success');
@@ -298,7 +316,7 @@ function confirmDeleteRoom(id, roomNo) {
         for (var i = 0; i < rooms.length; i++) {
             if (rooms[i].id !== id) updated.push(rooms[i]);
         }
-        DB.set('rooms', updated);
+        saveRooms(updated);
         renderRoomView();
         APP.notify('Room ' + roomNo + ' removed', 'success');
     });
