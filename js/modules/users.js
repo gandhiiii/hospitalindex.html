@@ -1,68 +1,63 @@
 function renderUsers(container) {
-    const users = DB.get('users');
+    var users = DB.get('users');
 
-    container.innerHTML = `
-        <div class="flex-between mb-4">
-            <div class="search-box">
-                <input type="text" class="form-control" id="userSearch" placeholder="Search users..." oninput="renderUsersList()">
-            </div>
-            <div style="display:flex;gap:6px;">
-                <button class="btn btn-primary" onclick="showUserForm()">+ Add User</button>
-                ${AUTH.currentUser()?.isSuperAdmin || AUTH.currentUser()?.role === 'admin' ? '<button class="btn btn-danger" onclick="removeAllEmployees()">🗑️ Remove All Employees</button>' : ''}
-            </div>
-        </div>
-        <div class="card">
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Username</th><th>Full Name</th><th>Email</th><th>Phone</th>
-                            <th>Role</th><th>Department</th><th>Permissions</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    `;
+    container.innerHTML = ''
+        + '<div class="flex-between mb-4">'
+        + '<div class="search-box">'
+        + '<input type="text" class="form-control" id="userSearch" placeholder="Search users..." oninput="renderUsersList()">'
+        + '</div>'
+        + '<div style="display:flex;gap:6px;align-items:center;">'
+        + '<span id="userCount" style="font-size:13px;color:var(--gray);">' + users.length + ' users</span>'
+        + '<button class="btn btn-primary" onclick="showUserForm()">+ Add User</button>'
+        + (AUTH.currentUser()?.isSuperAdmin || AUTH.currentUser()?.role === 'admin'
+            ? '<button class="btn btn-danger" onclick="removeAllEmployees()">🗑️ Remove All</button>' : '')
+        + '</div></div>'
+        + '<div class="card"><div class="table-responsive"><table><thead><tr>'
+        + '<th>Username</th><th>Full Name</th><th>Email</th><th>Phone</th>'
+        + '<th>Role</th><th>Department</th><th>Permissions</th><th>Actions</th>'
+        + '</tr></thead><tbody id="usersTableBody"></tbody></table></div></div>';
     renderUsersList();
 }
 
 function renderUsersList() {
-    const users = DB.get('users');
-    const search = (document.getElementById('userSearch')?.value || '').toLowerCase();
-    const filtered = users.filter(u =>
-        u.fullName.toLowerCase().includes(search) ||
-        u.username.toLowerCase().includes(search) ||
-        u.email.toLowerCase().includes(search) ||
-        u.role.includes(search) ||
-        (u.department || '').toLowerCase().includes(search)
-    );
-    const tbody = document.getElementById('usersTableBody');
-    if (!tbody) return;
+    try {
+        var users = DB.get('users');
+        var search = (document.getElementById('userSearch')?.value || '').toLowerCase();
+        var filtered = users.filter(function(u) {
+            return u.fullName.toLowerCase().includes(search) ||
+                u.username.toLowerCase().includes(search) ||
+                u.email.toLowerCase().includes(search) ||
+                u.role.includes(search) ||
+                (u.department || '').toLowerCase().includes(search);
+        });
+        var tbody = document.getElementById('usersTableBody');
+        if (!tbody) { console.warn('usersTableBody not found'); return; }
 
-    tbody.innerHTML = filtered.map(u => {
-        const deptFeatures = getDepartmentFeatures(u.department);
-        const inherited = deptFeatures.filter(f => !(u.permissions || []).includes(f));
-        const userPerms = u.permissions || [];
-        const totalPerms = new Set([...deptFeatures, ...userPerms]).size;
-        return `<tr>
-            <td><strong>${u.username}</strong></td>
-            <td>${u.fullName}</td>
-            <td>${u.email}</td>
-            <td>${u.phone}</td>
-            <td><span class="badge ${APP.getRoleBadge(u.role)}">${u.role.toUpperCase()}</span></td>
-            <td>${u.department || '-'}</td>
-            <td style="font-size:12px;">
-                <span class="badge badge-info">${totalPerms} modules</span>
-                ${deptFeatures.length > 0 ? `<span style="color:var(--gray);display:block;">${deptFeatures.length} from dept</span>` : ''}
-            </td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="editUser('${u.id}')">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')" ${u.isSuperAdmin ? 'disabled' : ''}>Del</button>
-            </td>
-        </tr>`;
-    }).join('') || '<tr><td colspan="8" class="empty-state">No users found</td></tr>';
+        tbody.innerHTML = filtered.map(function(u) {
+            var deptFeatures = typeof getDepartmentFeatures === 'function' ? getDepartmentFeatures(u.department) : [];
+            var userPerms = u.permissions || [];
+            var totalPerms = new Set([].concat(deptFeatures, userPerms)).size;
+            return '<tr>'
+                + '<td><strong>' + u.username + '</strong></td>'
+                + '<td>' + u.fullName + '</td>'
+                + '<td>' + u.email + '</td>'
+                + '<td>' + u.phone + '</td>'
+                + '<td><span class="badge ' + APP.getRoleBadge(u.role) + '">' + u.role.toUpperCase() + '</span></td>'
+                + '<td>' + (u.department || '-') + '</td>'
+                + '<td style="font-size:12px;"><span class="badge badge-info">' + totalPerms + ' modules</span>'
+                + (deptFeatures.length > 0 ? '<span style="color:var(--gray);display:block;">' + deptFeatures.length + ' from dept</span>' : '')
+                + '</td>'
+                + '<td><button class="btn btn-sm btn-primary" onclick="editUser(\'' + u.id + '\')">Edit</button> '
+                + '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + u.id + '\')"' + (u.isSuperAdmin ? ' disabled' : '') + '>Del</button></td>'
+                + '</tr>';
+        }).join('') || '<tr><td colspan="8" class="empty-state">No users found</td></tr>';
+        var countEl = document.getElementById('userCount');
+        if (countEl) countEl.textContent = users.length + ' users';
+    } catch (e) {
+        console.warn('renderUsersList error:', e);
+        var tbody = document.getElementById('usersTableBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Error loading users</td></tr>';
+    }
 }
 
 function showUserForm(user) {
