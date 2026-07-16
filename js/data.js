@@ -72,14 +72,17 @@ const DEFAULT_ADMIN = {
 };
 
 const AUTH = {
-    _tabKey() {
-        let k = null;
-        try { k = sessionStorage.getItem('hms_t'); } catch (e) {}
-        if (!k) {
-            k = 'hms_u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            try { sessionStorage.setItem('hms_t', k); } catch (e) {}
-        }
-        return k;
+    _sid() {
+        try {
+            let p = new URLSearchParams(window.location.search);
+            let s = p.get('sid');
+            if (s && localStorage.getItem('hms_sid_' + s)) return s;
+        } catch (e) {}
+        try {
+            let t = sessionStorage.getItem('hms_t');
+            if (t && localStorage.getItem(t)) return t.replace('hms_u_', '');
+        } catch (e) {}
+        return null;
     },
     init() {
         try {
@@ -112,13 +115,14 @@ const AUTH = {
             }
             const user = users.find(u => u.username === username && u.password === password);
             if (user) {
+                let sid = Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
                 try {
                     localStorage.setItem('hms_currentUser', JSON.stringify(user));
                     localStorage.setItem('hms_loginTime', new Date().toISOString());
-                    let k = this._tabKey();
-                    localStorage.setItem(k, JSON.stringify(user));
+                    localStorage.setItem('hms_sid_' + sid, JSON.stringify(user));
+                    try { sessionStorage.setItem('hms_t', sid); } catch (e) {}
                 } catch (e) { /* storage unavailable */ }
-                return { success: true, user };
+                return { success: true, user, sid };
             }
             return { success: false, message: 'Invalid username or password' };
         } catch (e) {
@@ -127,28 +131,31 @@ const AUTH = {
     },
     logout() {
         try {
-            let k = this._tabKey();
-            localStorage.removeItem(k);
+            let sid = this._sid();
+            if (sid) localStorage.removeItem('hms_sid_' + sid);
         } catch (e) {}
         localStorage.removeItem('hms_currentUser');
         localStorage.removeItem('hms_loginTime');
     },
     currentUser() {
         try {
-            let k = this._tabKey();
-            let d = localStorage.getItem(k);
-            if (d) return JSON.parse(d);
+            let sid = this._sid();
+            if (sid) {
+                let d = localStorage.getItem('hms_sid_' + sid);
+                if (d) return JSON.parse(d);
+            }
+        } catch (e) {}
+        try {
+            let p = new URLSearchParams(window.location.search);
+            let s = p.get('sid');
+            if (s) {
+                let d = localStorage.getItem('hms_sid_' + s);
+                if (d) return JSON.parse(d);
+            }
         } catch (e) {}
         try {
             let d = localStorage.getItem('hms_currentUser');
-            if (d) {
-                let u = JSON.parse(d);
-                try {
-                    let k = this._tabKey();
-                    localStorage.setItem(k, d);
-                } catch (e) {}
-                return u;
-            }
+            if (d) return JSON.parse(d);
         } catch (e) {}
         return null;
     },

@@ -80,7 +80,7 @@
             try {
                 const result = AUTH.login(username, password);
                 if (result.success) {
-                    window.location.href = 'dashboard.html';
+                    window.location.href = 'dashboard.html?sid=' + result.sid;
                 } else {
                     document.getElementById('loginError').textContent = result.message;
                 }
