@@ -620,6 +620,9 @@ const APP = {
             if (!Array.isArray(DB.get('suggestions')) || DB.get('suggestions').length === 0) {
                 DB.set('suggestions', []);
             }
+            if (!Array.isArray(DB.get('reports')) || DB.get('reports').length === 0) {
+                DB.set('reports', []);
+            }
             if (!Array.isArray(existingRights) || existingRights.length === 0) {
                 const defaultRights = ['dashboard','users','departments','inventory','gate-security',
                     'projects','ambulance','problems','tasks','complaints',

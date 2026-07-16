@@ -5,7 +5,7 @@ const Router = {
         if (!user) { window.location.href = 'index.html'; return; }
         this.renderHeader();
         this.renderSidebar();
-        const startModule = user.role === 'ambulance_employee' ? 'ambulance' : 'dashboard';
+        const startModule = user.role === 'ambulance_employee' ? 'ambulance' : user.role === 'employee' ? 'employee-dashboard' : 'dashboard';
         this.navigate(startModule);
         document.getElementById('menuToggle').onclick = () => {
             document.getElementById('sidebar').classList.toggle('open');
