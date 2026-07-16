@@ -72,6 +72,15 @@ const DEFAULT_ADMIN = {
 };
 
 const AUTH = {
+    _tabKey() {
+        let k = null;
+        try { k = sessionStorage.getItem('hms_t'); } catch (e) {}
+        if (!k) {
+            k = 'hms_u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            try { sessionStorage.setItem('hms_t', k); } catch (e) {}
+        }
+        return k;
+    },
     init() {
         try {
             let users = DB.get('users');
@@ -106,7 +115,9 @@ const AUTH = {
                 try {
                     localStorage.setItem('hms_currentUser', JSON.stringify(user));
                     localStorage.setItem('hms_loginTime', new Date().toISOString());
-                } catch (e) { /* localStorage unavailable */ }
+                    let k = this._tabKey();
+                    localStorage.setItem(k, JSON.stringify(user));
+                } catch (e) { /* storage unavailable */ }
                 return { success: true, user };
             }
             return { success: false, message: 'Invalid username or password' };
@@ -115,12 +126,31 @@ const AUTH = {
         }
     },
     logout() {
+        try {
+            let k = this._tabKey();
+            localStorage.removeItem(k);
+        } catch (e) {}
         localStorage.removeItem('hms_currentUser');
         localStorage.removeItem('hms_loginTime');
     },
     currentUser() {
-        try { return JSON.parse(localStorage.getItem('hms_currentUser')); }
-        catch { return null; }
+        try {
+            let k = this._tabKey();
+            let d = localStorage.getItem(k);
+            if (d) return JSON.parse(d);
+        } catch (e) {}
+        try {
+            let d = localStorage.getItem('hms_currentUser');
+            if (d) {
+                let u = JSON.parse(d);
+                try {
+                    let k = this._tabKey();
+                    localStorage.setItem(k, d);
+                } catch (e) {}
+                return u;
+            }
+        } catch (e) {}
+        return null;
     },
     isLoggedIn() {
         return !!this.currentUser();
