@@ -20,7 +20,7 @@
 <body>
     <div class="app-layout">
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-logo" onclick="Router.navigate('dashboard')">
+            <div class="sidebar-logo" onclick="Router.navigate(AUTH.currentUser()?.role === 'employee' ? 'employee-dashboard' : 'dashboard')">
                 <span>🏥</span> HMS
             </div>
             <nav class="sidebar-nav" id="sidebarNav"></nav>

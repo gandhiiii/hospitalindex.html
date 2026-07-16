@@ -68,6 +68,8 @@ const Router = {
         nav.innerHTML = html;
     },
     navigate(module) {
+        var u = AUTH.currentUser();
+        if (module === 'dashboard' && u && u.role === 'employee') module = 'employee-dashboard';
         APP.currentModule = module;
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         const navItem = document.querySelector(`.nav-item[data-module="${module}"]`);
